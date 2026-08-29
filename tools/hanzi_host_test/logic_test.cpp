@@ -221,6 +221,12 @@ int main()
     for (auto& [syl, ids] : ref.by_syllable) {
         std::sort(ids.begin(), ids.end());
         ids.erase(std::unique(ids.begin(), ids.end()), ids.end());
+        // No syllable may contain the same letter twice in a row: the dial
+        // UI's "tap the last letter again to take it back" gesture depends
+        // on a repeated letter never being a legitimate continuation.
+        for (size_t i = 0; i + 1 < syl.size(); ++i) {
+            check(syl[i] != syl[i + 1], "syllable with doubled letter: " + syl);
+        }
     }
     std::printf("readings: %zu across %zu distinct syllables\n", readings.size(), ref.by_syllable.size());
 

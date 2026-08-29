@@ -4,7 +4,7 @@
 
 | App | 内容 |
 |---|---|
-| **识字** | T9 九宫格拼音查字 + 笔顺动画：9562 字（教材 1847 字按课文编排 + 笔画数据全集），田字格里逐笔写给孩子看，配带声调拼音 |
+| **识字** | 字母拨盘拼音查字 + 笔顺动画：9562 字（教材 1847 字按课文编排 + 笔画数据全集），田字格里逐笔写给孩子看，配带声调拼音 |
 | **算术** | 100 以内加减法二选一闯关，六档难度自适应，星尘经济 + 关卡地图 |
 | **英语** | 给还不识字的孩子看图听音学单词，24 组 288 词，图卡过一遍再二选一 |
 
@@ -24,7 +24,7 @@ python3 tools/make_readme_shots.py     # 跑三个 sim，挑图，抠圆，写�
 
 <table>
 <tr>
-<td align="center"><img src="docs/images/hanzi-search.png" width="220"><br><sub><b>识字</b> · T9 拼音查字</sub></td>
+<td align="center"><img src="docs/images/hanzi-search.png" width="220"><br><sub><b>识字</b> · 字母拨盘查字</sub></td>
 <td align="center"><img src="docs/images/hanzi-browse.png" width="220"><br><sub><b>识字</b> · 按课文分页浏览</sub></td>
 <td align="center"><img src="docs/images/hanzi-learn.png" width="220"><br><sub><b>识字</b> · 田字格里逐笔写</sub></td>
 </tr>
@@ -48,8 +48,8 @@ python3 tools/make_readme_shots.py     # 跑三个 sim，挑图，抠圆，写�
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | **A 键** | 上一个 App | 候选上一页 | 上一页 / 上一课 | 上一个字¹ | 换一关 | 选左边 | 再来一关 | 换一组 | 重播 | 选左边 | 再来一次 |
 | **B 键** | 下一个 App | 候选下一页 | 下一页 / 下一课 | 下一个字¹ | 开始 | 选右边 | 地图 | 开始 | 下一个 | 选右边 | 换一组 |
-| **点击** | 图标 → 进入 | 键盘 / 选拼音 / 选字 | 选字 → 学习页 | 整屏重播动画 | 选关卡 / 中心开始 | 点卡片作答 | 再来一关 | 选中 / 开始 | 整屏重播 | 点那张图 | 推进 |
-| **横滑** | — | → 浏览页 | → 搜索页 | — | — | — | — | — | — | — | — |
+| **点击** | 图标 → 进入 | 拨盘选字母 / 选字 | 选字 → 学习页 | 整屏重播动画 | 选关卡 / 中心开始 | 点卡片作答 | 再来一关 | 选中 / 开始 | 整屏重播 | 点那张图 | 推进 |
+| **横滑** | — | — | → 搜索页 | — | — | — | — | — | — | — | — |
 | **A+B 长按** | — | 回首页 | 回搜索页 | 回来处 | 回首页 | 回首页 | 回首页 | 回首页 | 回选组 | 回选组 | 回选组 |
 
 ¹ 从搜索进入学习页时，A/B 变为「返回搜索 / 重写一遍」——搜出来的字没有有意义的"下一个"。
@@ -114,7 +114,7 @@ CONFIG_KIDS_APP_ENGLISH=y
 ```bash
 # 识字：全字形与 golden 逐像素 diff、动画增量重绘残影检测、真 LVGL UI 模拟器
 cmake -S tools/hanzi_host_test -B build_host && cmake --build build_host
-./build_host/hanzi_host_test            # 1847 字逐字与 golden 比对
+./build_host/hanzi_host_test            # 9562 字逐字与 golden 比对
 ./build_host/anim_host_test --char 6211 # 每帧比对增量绘制 vs 全量重绘，抓脏区/残影
 ./build_host/hanzi_sim
 

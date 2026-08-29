@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include <apps/common/pinyin_ime/ime_view.h>
+#include <apps/common/pinyin_ime/dial_view.h>
 #include <hal/hal.h>
 #include <cstdint>
 #include <functional>
@@ -143,11 +143,11 @@ private:
     char _pinyin_override[16] = {};
 };
 
-// Pinyin lookup, the app's landing page: the reusable T9 widget wired to the
-// stroke engine. The page itself is thin glue -- it owns the GlyphPainter
-// that renders candidates with hz::Compositor, wires the horizontal-swipe
-// gesture that leads to the textbook browse mode, and forwards everything
-// else to pime::ImeView.
+// Pinyin lookup, the app's landing page: the reusable alphabet-dial widget
+// wired to the stroke engine. The page itself is thin glue -- it owns the
+// GlyphPainter that renders candidates with hz::Compositor, wires the
+// horizontal-swipe gesture that leads to the textbook browse mode, and
+// forwards everything else to pime::DialView.
 class SearchPage {
 public:
     using BrowseCallback = std::function<void()>;
@@ -172,16 +172,16 @@ public:
     // and `reading` (optional) the toned reading it was picked under.
     bool takePick(uint16_t& order, char* reading = nullptr, size_t cap = 0);
 
-    // The host sim drives key presses through this.
-    pime::ImeView& ime()
+    // The host sim drives input through this.
+    pime::DialView& dial()
     {
-        return _ime;
+        return _dial;
     }
 
 private:
     class HanziPainter;
     std::unique_ptr<HanziPainter> _painter;
-    pime::ImeView _ime;
+    pime::DialView _dial;
     BrowseCallback _on_browse;
 };
 

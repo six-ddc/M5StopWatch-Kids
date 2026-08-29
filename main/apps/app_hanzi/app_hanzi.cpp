@@ -97,7 +97,11 @@ void AppHanzi::onOpen()
     }
 
     _search = std::make_unique<view::SearchPage>();
-    if (!_search->create(lv_screen_active(), &_source, &_engine, [this]() { showBrowse(); })) {
+    // No browse callback for now: on the real glass a ring scrub reads as a
+    // horizontal swipe often enough that the mode-switch gesture fights the
+    // dial, so the browse entry is parked until it gets a better trigger.
+    // (SearchPage keeps the capability; pass a callback to re-enable.)
+    if (!_search->create(lv_screen_active(), &_source, &_engine)) {
         mclog::tagError(getAppInfo().name, "search page failed to initialise");
         _search.reset();
         _browse.reset();

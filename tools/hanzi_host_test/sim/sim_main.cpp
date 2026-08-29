@@ -19,6 +19,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cmath>
 #include <cstring>
 #include <filesystem>
 #include <string>
@@ -196,13 +197,17 @@ size_t g_touch_index = 0;
 
 void touchReadCb(lv_indev_t* /*indev*/, lv_indev_data_t* data)
 {
-    if (g_touch_index < g_touch_frames.size()) {
-        const TouchFrame& f = g_touch_frames[g_touch_index++];
-        data->point         = f.point;
-        data->state         = f.pressed ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
-    } else {
+    if (g_touch_frames.empty()) {
         data->state = LV_INDEV_STATE_RELEASED;
+        return;
     }
+    // Holds the last frame once the script runs out, so a script ending in a
+    // pressed frame keeps the finger down (for mid-press screenshots); every
+    // script that wants a release ends with a released frame.
+    const TouchFrame& f =
+        g_touch_frames[g_touch_index < g_touch_frames.size() ? g_touch_index++ : g_touch_frames.size() - 1];
+    data->point = f.point;
+    data->state = f.pressed ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
 }
 
 // Press at (x0,y), drag to (x1,y) in 20 px steps (well over the 3 px/read
@@ -330,7 +335,7 @@ int main(int argc, char** argv)
         }
     }
 
-    // --- Search page (T9 pinyin lookup) ---
+    // --- Search page (alphabet-dial pinyin lookup) ---
     learn.setHidden(true);
 
     // Build the engine exactly the way AppHanzi::buildSearchIndex does:
@@ -371,8 +376,10 @@ int main(int argc, char** argv)
         return 1;
     }
     pump(33, 3);
-    checkedScreenshot(out_dir, "search_00");  // empty state
+    checkedScreenshot(out_dir, "dial_00");  // empty state, full bright ring
 
+    // A centre-area swipe (never entering the ring band) must still switch
+    // modes.
     swipeHorizontal(100, 360, 300);
     if (!to_browse_fired) {
         ++g_failures;
@@ -381,29 +388,90 @@ int main(int argc, char** argv)
         std::printf("  search swipe            ok\n");
     }
 
-    auto pressDigits = [&](const char* digits) {
-        for (const char* c = digits; *c != '\0'; c++) {
-            search.ime().handleLetterKey(static_cast<uint8_t>(*c - '2'));
-            pump(33, 2);
+    // Screen position of a ring letter, optionally a fraction of a slot off.
+    auto ringPoint = [](char letter, float slots_off) {
+        const float deg = -90.0f + ((letter - 'a') + slots_off) * (360.0f / 26.0f);
+        const float rad = deg * 3.14159265f / 180.0f;
+        lv_point_t p;
+        p.x = static_cast<int32_t>(233 + 203 * std::cos(rad));
+        p.y = static_cast<int32_t>(233 + 203 * std::sin(rad));
+        return p;
+    };
+    auto ringTap = [&](char letter, float slots_off) {
+        const lv_point_t p = ringPoint(letter, slots_off);
+        g_touch_frames.clear();
+        g_touch_index = 0;
+        for (int i = 0; i < 3; i++) g_touch_frames.push_back({p, true});
+        g_touch_frames.push_back({p, false});
+        pump(33, 8);
+    };
+    auto expectPrefix = [&](const char* want, const char* what) {
+        const char* got = search.dial().prefix();
+        if (std::strcmp(got, want) != 0) {
+            ++g_failures;
+            std::printf("  %-22s prefix \"%s\", want \"%s\"\n", what, got, want);
+        } else {
+            std::printf("  %-22s ok (prefix \"%s\")\n", what, got);
         }
     };
 
-    // "hao" (426) collides with gao/gan/han/...: interpretation chips plus a
-    // full candidate strip.
-    pressDigits("426");
-    checkedScreenshot(out_dir, "search_01");
+    // Through the real indev: a press on 'i' -- which can never start a
+    // syllable -- must snap to the neighbouring bright 'h'.
+    ringTap('i', 0.0f);
+    expectPrefix("h", "ring snap tap");
 
-    // Switch to the second interpretation.
-    search.ime().handleInterpChip(1);
+    search.dial().typeLetter('a');
+    search.dial().typeLetter('o');
+    pump(33, 3);
+    expectPrefix("hao", "direct typing");
+    checkedScreenshot(out_dir, "dial_hao");
+
+    search.nextCandidatePage();
     pump(33, 2);
-    checkedScreenshot(out_dir, "search_02");
+    checkedScreenshot(out_dir, "dial_page2");
 
-    // Reading pass-through: the picked candidate must surface the toned
-    // reading it was shown under (the "gao" interpretation is selected at
-    // this point), which the learn page then displays instead of the
-    // character's primary reading.
+    // Recall gesture: tapping the last-typed letter takes it back.
+    ringTap('o', 0.0f);
+    expectPrefix("ha", "recall retap");
+    pump(33, 8);  // let the fly-back ghost land before the screenshot
+    checkedScreenshot(out_dir, "dial_recall");
+
+    // Scrubbing along the ring (a curved, mostly-horizontal drag) must not
+    // fire the mode-switch gesture; releasing on 'o' commits it.
     {
-        search.ime().handleCandidate(1);
+        const bool before = to_browse_fired;
+        g_touch_frames.clear();
+        g_touch_index = 0;
+        for (int step = 0; step <= 10; step++) {
+            const float from = 'k' - 'a';
+            const float to   = 'o' - 'a';
+            const float slot = from + (to - from) * step / 10.0f;
+            const float deg  = -90.0f + slot * (360.0f / 26.0f);
+            const float rad  = deg * 3.14159265f / 180.0f;
+            lv_point_t p;
+            p.x = static_cast<int32_t>(233 + 203 * std::cos(rad));
+            p.y = static_cast<int32_t>(233 + 203 * std::sin(rad));
+            g_touch_frames.push_back({p, true});
+        }
+        // Hold at 'o' first: the armed letter must preview greyed behind the
+        // echo (the finger hides the ring, the echo stays visible).
+        pump(33, 14);
+        checkedScreenshot(out_dir, "dial_preview");
+        g_touch_frames.push_back({g_touch_frames.back().point, false});
+        pump(33, 4);
+        expectPrefix("hao", "ring scrub commit");
+        if (to_browse_fired != before) {
+            ++g_failures;
+            std::printf("  ring scrub              GESTURE FIRED (must be suppressed)\n");
+        } else {
+            std::printf("  ring scrub              gesture suppressed ok\n");
+        }
+    }
+
+    // Reading pass-through: the picked candidate surfaces the toned reading
+    // it was shown under, which the learn page then displays.
+    {
+        search.dial().handleCandidate(1);
         uint16_t order = 0;
         char reading[16];
         if (!search.takePick(order, reading, sizeof(reading))) {
@@ -419,52 +487,17 @@ int main(int argc, char** argv)
             learn.setHidden(false);
             learn.showCharacter(order, reading);
             pump(33, 3);
-            checkedScreenshot(out_dir, "search_pick_learn");
+            checkedScreenshot(out_dir, "dial_pick_learn");
             learn.setHidden(true);
             search.setHidden(false);
             pump(33, 2);
         }
     }
 
-    // A huge homophone set ("shi", 744) paged forward once.
-    search.ime().handleDeleteLong();
-    pump(33, 2);
-    pressDigits("744");
-    search.nextCandidatePage();
-    pump(33, 2);
-    checkedScreenshot(out_dir, "search_03");
-
-    // Widest chip row, sampled from the real syllable set rather than made
-    // up: the digit string whose interpretations are most numerous, with the
-    // summed text length as tie-break.
-    std::string widest;
-    size_t widest_score = 0;
-    for (const std::string& t : texts) {
-        std::string digits;
-        for (char c : t) digits.push_back(pime::pyDigitOf(c));
-        for (size_t len = 1; len <= digits.size(); ++len) {
-            const std::string prefix = digits.substr(0, len);
-            const char* interps[pime::T9Engine::kMaxInterps];
-            const uint16_t n = engine.interpretations(prefix.c_str(), interps, pime::T9Engine::kMaxInterps);
-            size_t score     = static_cast<size_t>(n) * 100;
-            for (uint16_t i = 0; i < n; ++i) score += std::strlen(interps[i]);
-            if (score > widest_score) {
-                widest_score = score;
-                widest       = prefix;
-            }
-        }
-    }
-    std::printf("  widest interpretation row: digits %s\n", widest.c_str());
-    search.ime().handleDeleteLong();
-    pump(33, 2);
-    pressDigits(widest.c_str());
-    checkedScreenshot(out_dir, "search_04");
-
-    // Page the interpretation window forward: the second window must lead
-    // with a back-"..." chip.
-    search.ime().handleInterpChip(3);
-    pump(33, 2);
-    checkedScreenshot(out_dir, "search_05");
+    // Echo long-press clears everything back to the empty state.
+    search.dial().handleEchoLong();
+    pump(33, 8);
+    expectPrefix("", "echo clear");
 
     if (g_failures == 0) {
         std::printf("RESULT: OK\n");

@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>app_english 设计方案 · M5StopWatch-Kids</title>
+<style>
+  :root{
+    --bg:#08080a; --panel:#111114; --panel2:#17171c; --line:#26262e;
+    --tx:#e9e9ee; --tx2:#9a9aa6; --tx3:#63636f;
+    --en:#3DDC97;          /* 英语 app 主题色 */
+    --hz:#FF6848;          /* 汉字 */
+    --mt:#56B0FF;          /* 数学 */
+    --warn:#FFB454; --bad:#FF5C6C;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);
+    font:15px/1.75 -apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px 100px}
+
+  /* ---------- header ---------- */
+  header{padding:72px 0 44px;border-bottom:1px solid var(--line);margin-bottom:12px}
+  .eyebrow{font:600 11px/1 var(--mono);letter-spacing:.22em;color:var(--en);text-transform:uppercase}
+  h1{font-size:40px;line-height:1.2;margin:18px 0 12px;letter-spacing:-.02em;font-weight:650}
+  .sub{color:var(--tx2);font-size:16px;max-width:660px}
+  .meta{margin-top:26px;display:flex;gap:10px;flex-wrap:wrap}
+  .chip{font:500 12px var(--mono);color:var(--tx2);background:var(--panel);
+    border:1px solid var(--line);padding:5px 11px;border-radius:99px}
+  .chip b{color:var(--en);font-weight:600}
+
+  /* ---------- sections ---------- */
+  section{padding-top:64px;scroll-margin-top:20px}
+  h2{font-size:13px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--tx3);margin:0 0 8px;font-family:var(--mono)}
+  h2 .n{color:var(--en)}
+  h3{font-size:26px;font-weight:620;letter-spacing:-.01em;margin:0 0 20px}
+  h4{font-size:16px;font-weight:620;margin:32px 0 12px;color:var(--tx)}
+  p{color:var(--tx2);margin:0 0 16px}
+  p strong,li strong{color:var(--tx);font-weight:600}
+  code{font:500 13px var(--mono);background:#1c1c22;color:#c8c8d4;
+    padding:1.5px 6px;border-radius:4px;border:1px solid #26262e}
+  a{color:var(--en);text-decoration:none;border-bottom:1px solid rgba(61,220,151,.28)}
+  a:hover{border-bottom-color:var(--en)}
+
+  /* ---------- callout ---------- */
+  .key{background:linear-gradient(180deg,rgba(61,220,151,.07),rgba(61,220,151,.02));
+    border:1px solid rgba(61,220,151,.26);border-left:3px solid var(--en);
+    border-radius:10px;padding:20px 24px;margin:26px 0}
+  .key .lab{font:600 10px var(--mono);letter-spacing:.16em;color:var(--en);
+    text-transform:uppercase;display:block;margin-bottom:8px}
+  .key p{color:var(--tx);margin:0}
+  .key p + p{margin-top:10px}
+  .warnbox{background:rgba(255,92,108,.05);border:1px solid rgba(255,92,108,.24);
+    border-left:3px solid var(--bad);border-radius:10px;padding:18px 22px;margin:24px 0}
+  .warnbox .lab{font:600 10px var(--mono);letter-spacing:.16em;color:var(--bad);
+    text-transform:uppercase;display:block;margin-bottom:8px}
+  .warnbox p{color:var(--tx);margin:0}
+
+  /* ---------- table ---------- */
+  .tw{overflow-x:auto;margin:22px 0;border:1px solid var(--line);border-radius:10px}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:620px}
+  th{background:var(--panel);text-align:left;padding:11px 15px;font-weight:600;
+    color:var(--tx3);border-bottom:1px solid var(--line);
+    font:600 10.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+  td{padding:12px 15px;border-bottom:1px solid #1c1c22;color:var(--tx2);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td b{color:var(--tx);font-weight:600}
+  .ok{color:var(--en);font-weight:600}
+  .no{color:var(--bad);font-weight:600}
+  .mid{color:var(--warn);font-weight:600}
+  .tag{font:600 10px var(--mono);padding:2.5px 7px;border-radius:4px;white-space:nowrap;
+    border:1px solid;display:inline-block}
+  .t-free{color:var(--en);border-color:rgba(61,220,151,.35);background:rgba(61,220,151,.08)}
+  .t-nc{color:var(--warn);border-color:rgba(255,180,84,.35);background:rgba(255,180,84,.08)}
+  .t-sa{color:var(--mt);border-color:rgba(86,176,255,.35);background:rgba(86,176,255,.08)}
+
+  /* ---------- cards ---------- */
+  .grid{display:grid;gap:14px;margin:24px 0}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:18px 20px}
+  .card .h{font-weight:620;color:var(--tx);margin-bottom:7px;font-size:15px;
+    display:flex;align-items:center;gap:8px}
+  .card .d{font-size:13.5px;color:var(--tx2);line-height:1.65}
+  .num{font:700 11px var(--mono);color:var(--en);background:rgba(61,220,151,.1);
+    border:1px solid rgba(61,220,151,.3);width:20px;height:20px;border-radius:5px;
+    display:inline-flex;align-items:center;justify-content:center;flex:none}
+
+  /* ---------- DEVICE PROTOTYPE ---------- */
+  .proto{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:34px;margin:28px 0;display:flex;gap:38px;align-items:flex-start;flex-wrap:wrap}
+  .devcol{flex:none;width:400px;display:flex;flex-direction:column;align-items:center}
+  .devwrap{position:relative;width:400px;height:400px}
+  /* bezel ears at 10 / 2 o'clock, ±41deg off top */
+  .ear{position:absolute;width:52px;height:30px;background:#232329;border:1px solid #35353e;
+    border-radius:7px;cursor:pointer;z-index:3;transition:.12s;
+    display:flex;align-items:center;justify-content:center;
+    font:700 12px var(--mono);color:var(--tx2);user-select:none}
+  .ear:hover{background:#2e2e36;color:var(--tx)}
+  .ear:active,.ear.hit{background:var(--en);color:#04150d;border-color:var(--en)}
+  /* r=200 ; 41deg from top: x=200+200*sin41=331, y=200-200*cos41=49 */
+  #earA{left:43px;top:36px;transform:rotate(-41deg)}
+  #earB{left:305px;top:36px;transform:rotate(41deg)}
+  .screen{position:absolute;inset:0;border-radius:50%;background:#000;
+    border:5px solid #1b1b21;overflow:hidden;
+    box-shadow:0 0 0 1px #33333d,0 22px 60px rgba(0,0,0,.75),inset 0 0 40px rgba(0,0,0,.9)}
+  .sc{position:absolute;inset:0;display:none;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:34px}
+  .sc.on{display:flex;animation:fi .22s ease}
+  @keyframes fi{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:none}}
+
+  .ttl{font:600 12px var(--mono);letter-spacing:.14em;color:var(--tx3);text-transform:uppercase}
+  .big{font-size:52px;font-weight:700;letter-spacing:-.01em;line-height:1.1}
+  .huge{font-size:96px;line-height:1}
+  .ipa{font:400 17px var(--mono);color:var(--en);margin-top:5px}
+  .zh{font-size:16px;color:var(--tx3);margin-top:3px}
+  /* answer cards sit directly under the physical ears */
+  .ans{position:absolute;top:74px;width:132px;height:104px;border-radius:15px;
+    background:#141419;border:2px solid #2c2c36;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;cursor:pointer;transition:.14s;gap:3px}
+  .ans:hover{border-color:#454552;background:#191920}
+  .ans.L{left:54px}.ans.R{right:54px}
+  .ans .em{font-size:44px;line-height:1}
+  .ans .wd{font-size:23px;font-weight:650}
+  .ans.right{border-color:var(--en);background:rgba(61,220,151,.15);
+    box-shadow:0 0 26px rgba(61,220,151,.3)}
+  .ans.wrong{border-color:var(--bad);background:rgba(255,92,108,.13);opacity:.55}
+  .hint{position:absolute;bottom:52px;font:500 12px var(--mono);color:var(--tx3);
+    letter-spacing:.05em}
+  .prog{position:absolute;top:34px;font:600 13px var(--mono);color:var(--tx3);letter-spacing:.1em}
+  .arc{position:absolute;inset:16px;border-radius:50%;border:3px solid #1e1e26;
+    border-top-color:var(--en);transform:rotate(-30deg)}
+  /* unit grid */
+  .ugrid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;width:250px}
+  .ucell{background:#141419;border:1.5px solid #2a2a33;border-radius:12px;
+    padding:11px 4px;cursor:pointer;transition:.13s}
+  .ucell:hover{border-color:#454552}
+  .ucell.sel{border-color:var(--en);background:rgba(61,220,151,.13)}
+  .ucell .ue{font-size:27px;line-height:1.1}
+  .ucell .un{font:600 9.5px var(--mono);color:var(--tx3);margin-top:3px;letter-spacing:.03em}
+  .ucell.sel .un{color:var(--en)}
+  /* sentence cloze */
+  .sent{font-size:29px;line-height:1.5;font-weight:500;max-width:270px}
+  .blank{display:inline-block;min-width:82px;border-bottom:3px solid var(--en);
+    color:var(--en);font-weight:700}
+  .stars{display:flex;gap:11px;margin:14px 0 4px}
+  .star{width:15px;height:15px;border-radius:50%;background:#252530}
+  .star.f{background:var(--en);box-shadow:0 0 15px rgba(61,220,151,.55)}
+  .mic{width:74px;height:74px;border-radius:50%;border:3px solid var(--en);
+    display:flex;align-items:center;justify-content:center;font-size:33px;
+    background:rgba(61,220,151,.1);animation:pl 1.3s infinite}
+  @keyframes pl{0%,100%{box-shadow:0 0 0 0 rgba(61,220,151,.4)}
+    70%{box-shadow:0 0 0 17px rgba(61,220,151,0)}}
+  .wave{display:flex;gap:4px;align-items:flex-end;height:34px;margin-top:16px}
+  .wave i{width:4px;background:var(--en);border-radius:2px;animation:wv .9s infinite ease-in-out}
+  @keyframes wv{0%,100%{height:7px}50%{height:32px}}
+
+  /* prototype side panel */
+  .pinfo{flex:1;min-width:290px}
+  .steps{list-style:none;padding:0;margin:0}
+  .steps li{padding:11px 0 11px 15px;border-left:2px solid var(--line);
+    cursor:pointer;transition:.13s;color:var(--tx3);font-size:14px}
+  .steps li:hover{border-left-color:#454552;color:var(--tx2)}
+  .steps li.act{border-left-color:var(--en);color:var(--tx)}
+  .steps li b{display:block;font-weight:620;margin-bottom:2px}
+  .steps li span{font-size:12.5px;color:var(--tx3);line-height:1.55;display:block}
+  .steps li.act span{color:var(--tx2)}
+
+  /* flow / pipeline */
+  .flow{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:24px;margin:24px 0;overflow-x:auto}
+  .flow pre{margin:0;font:500 12.5px/1.85 var(--mono);color:var(--tx2);white-space:pre}
+  .flow pre b{color:var(--en);font-weight:600}
+  .flow pre i{color:var(--warn);font-style:normal}
+  .flow pre u{color:var(--mt);text-decoration:none}
+
+  /* timeline */
+  .ph{display:flex;gap:16px;padding:20px 0;border-bottom:1px solid #1a1a20}
+  .ph:last-child{border-bottom:none}
+  .phn{flex:none;width:60px;font:700 12px var(--mono);color:var(--en);padding-top:2px}
+  .phc{flex:1}
+  .phc .t{font-weight:620;color:var(--tx);margin-bottom:5px;font-size:15px}
+  .phc .d{font-size:13.5px;color:var(--tx2);line-height:1.65}
+  .phc .o{font:500 12px var(--mono);color:var(--tx3);margin-top:7px}
+
+  .foot{margin-top:80px;padding-top:26px;border-top:1px solid var(--line);
+    color:var(--tx3);font-size:12.5px}
+  ul{color:var(--tx2);padding-left:20px;margin:14px 0}
+  li{margin-bottom:9px}
+  /* 手机：整体等比缩放圆屏，保持内部 400px 坐标系不失真 */
+  @media(max-width:860px){
+    .g3,.g2{grid-template-columns:1fr}
+    .proto{flex-direction:column;padding:22px 16px;gap:8px}
+    .devcol{width:100%}
+    h1{font-size:29px}
+    .wrap{padding:0 16px 70px}
+    header{padding:46px 0 34px}
+  }
+  @media(max-width:480px){
+    .devwrap{transform:scale(.80);transform-origin:top center;margin-bottom:-80px}
+  }
+  @media(max-width:380px){
+    .devwrap{transform:scale(.70);margin-bottom:-120px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">M5StopWatch-Kids · App 提案</div>
+  <h1>app_english<br>幼儿园到三年级英语学习模块</h1>
+  <p class="sub">数据源调研 → 内容体系 → 端云架构 → 交互原型。
+     所有外部资源均已实测可用性与许可，不是纸面推荐。</p>
+  <div class="meta">
+    <span class="chip">硬件 <b>ESP32-S3 / 466×466 圆形 AMOLED</b></span>
+    <span class="chip">输入 <b>2 键 + 单点触摸</b></span>
+    <span class="chip">音频 <b>ES8311 喇叭 + 麦克风</b></span>
+    <span class="chip">可用 <b>8.3MB Flash + 4.9MB FAT</b></span>
+    <span class="chip">日期 <b>2026-08-21</b></span>
+  </div>
+</header>
+
+<!-- ============ 1. 数据源 ============ -->
+<section>
+  <h2><span class="n">01</span> &nbsp;公开数据源调研</h2>
+  <h3>能白嫖什么，不能白嫖什么</h3>
+
+  <p>我把 GitHub / 开放 API 上和 K–G3 英语相关的资源全过了一遍，按<strong>词表、图片、音频、句子</strong>四类分。
+  下面每一条的许可证和规模都做过核对，标 <span class="ok">✅ 实测</span> 的是我直接调过接口或查过 API 的。</p>
+
+  <h4>① 词表 — 完全没有障碍</h4>
+  <div class="tw"><table>
+    <tr><th>来源</th><th>规模</th><th>获取</th><th>适配度</th><th>结论</th></tr>
+    <tr>
+      <td><b>Dolch Sight Words</b><br><span style="font-size:12px">1936 年发表，已进入公有领域</span></td>
+      <td>220 服务词 + 95 名词<br>= <b>315</b></td>
+      <td>开放</td>
+      <td class="ok">★★★★★</td>
+      <td><b>核心骨架。</b>原生按 Pre-Primer(40) / Primer(52) / G1(41) / G2(46) / G3(41) 分级，
+          和「幼儿园到三年级」<b>逐级对齐</b>，等于现成的教学大纲</td>
+    </tr>
+    <tr>
+      <td><b>Fry 1000</b></td><td>1000 词 / 10 组</td>
+      <td>开放</td><td class="ok">★★★★</td>
+      <td>按词频排序，前 300 覆盖 K–G3。用来给 Dolch <b>补充难度排序</b></td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/Maximax67/Words-CEFR-Dataset">Words-CEFR-Dataset</a> <span class="ok">✅</span></td>
+      <td>91★ / 31MB</td><td>开放</td><td class="ok">★★★★</td>
+      <td>给每个词标 A1/A2/B1 + 词频 + 词性。<b>自动分级的判据</b>，省掉人工排难度</td>
+    </tr>
+    <tr>
+      <td>剑桥 YLE Starters/Movers/Flyers</td>
+      <td>约 500 / 900 / 1500</td>
+      <td>开放</td><td class="mid">★★★</td>
+      <td>没有现成 JSON，需从官方 PDF 抽。但<b>国内家长认这个</b>，值得做一次一次性抽取</td>
+    </tr>
+  </table></div>
+
+  <h4>② 图片 — 这是真正的难点，也是我调研的重点</h4>
+  <div class="tw"><table>
+    <tr><th>来源</th><th>规模</th><th>获取</th><th>获取方式</th><th>评价</th></tr>
+    <tr>
+      <td><b>ARASAAC</b> <span class="ok">✅ 实测</span><br>
+        <span style="font-size:12px">西班牙阿拉贡政府 AAC 教育图库</span></td>
+      <td>万级<br>彩色 PNG 500px</td>
+      <td>开放</td>
+      <td><b>REST API，无需 key</b><br>
+        <code>api.arasaac.org/api/pictograms/en/search/{词}</code><br>
+        <code>api.arasaac.org/api/pictograms/{id}?resolution=500</code></td>
+      <td class="ok"><b>首选。</b>专为教学设计、语义精确、带 tags/categories 分类，
+          还有 <code>hasLocution</code> 发音标记。实测 500px PNG 仅 11.4KB</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/hfg-gmuend/openmoji">OpenMoji</a> <span class="ok">✅</span></td>
+      <td>4526★ / 4000+ SVG</td>
+      <td>开放</td><td>整库 clone</td>
+      <td><b>补位首选。</b>矢量、风格统一、童趣强，动物/食物/交通覆盖极好。
+          ARASAAC 没有或画得不好看的词用它兜底</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/jdecked/twemoji">Twemoji</a> <span class="ok">✅</span></td>
+      <td>1776★ / 3600+ SVG</td>
+      <td>开放</td><td>整库 clone</td>
+      <td>许可最宽松。<b>如果这东西哪天要卖，图片全切到它</b>，无 NC/SA 传染问题</td>
+    </tr>
+    <tr>
+      <td>Sclera Symbols</td><td>11443</td>
+      <td>开放</td><td>官网打包下载</td>
+      <td>白线黑底高对比 —— <b>和你这块纯黑 AMOLED 天生一对</b>。
+          但画风偏成人/抽象，幼儿吸引力不如彩色。留作「极简模式」皮肤</td>
+    </tr>
+    <tr>
+      <td><b>词典自带配图</b> <span class="ok">✅ 实测</span><br>
+        <span style="font-size:12px">本机词库内</span></td>
+      <td><b>1,683</b> 张<br>1000×1000 真实照片</td>
+      <td>开放</td>
+      <td>从 .mdd 抽<br><code>&lt;词&gt;_&lt;数字&gt;.jpg</code> 按词名</td>
+      <td class="mid"><b>只能当补充，不能当主力</b> —— 原因见下方实测。
+        正方形照片，缩到 160×160 很适合圆屏</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/mulberrysymbols/mulberry-symbols">Mulberry</a> <span class="ok">✅</span></td>
+      <td>3116 SVG / 185MB</td>
+      <td>开放</td><td>整库 clone</td>
+      <td>许可干净可商用，但仓库标 NOASSERTION 且明显<b>面向成人 AAC</b>，童趣不足。备选</td>
+    </tr>
+  </table></div>
+
+  <div class="warnbox">
+    <span class="lab">反直觉实测 · 词典配图救不了儿童词汇</span>
+    <p>我拿 70 个儿童最高频具象词（动物/食物/交通/身体/文具/衣物）去比对词典自带的 1683 张配图，
+      <strong>只命中 32 个，覆盖率 46%</strong>。而且没命中的恰恰是最基础的那批：
+      <code>sun · star · bus · car · book · ball · hand · eye · bird · fish · rain</code>。</p>
+    <p>看一眼那份配图词表的开头就明白了：
+      <code>abacus · abalone · abbey · absinthe · acacia · acorn · acrobatics · aerodrome · albatross</code>
+      —— <strong>成人词典只给「查了也想象不出长什么样」的冷僻词配图</strong>，
+      而 apple / bus / cat 对成人母语者根本不需要图。这套逻辑和儿童学习需求正好相反。</p>
+    <p><strong>所以图片主力仍然是 ARASAAC + OpenMoji，词典配图只做锦上添花。
+      但音频反过来 —— 词典是绝对主力，83% 直接命中。</strong></p>
+  </div>
+
+  <div class="key">
+    <span class="lab">实测数据 · 决定了整个设计</span>
+    <p>我拿 K–G3 的典型词跑了 ARASAAC 搜索接口，<strong>具象词 15/15 全部命中</strong>：
+      <code>apple</code> 8 张、<code>cat</code> 8 张、<code>bus</code> 46 张、<code>jump</code> 26 张、
+      <code>teacher</code> 30 张、<code>elephant</code> 2 张 —— 名词、动词、形容词、数字、颜色全都有图。</p>
+    <p>但换成 sight words 就崩了：<strong><code>could</code> 返回 0 张</strong>，
+      <code>because</code> 2 张（还是无关的），<code>the</code> 那 615 条是全文模糊匹配的噪音，不是真有 615 张「the」的图。</p>
+    <p><strong>Dolch 的 220 个服务词几乎全是这种无法配图的功能词。</strong>
+      这不是数据源的缺陷 —— 是「the / was / could」本来就画不出来。
+      所以这个 app <strong>必须有两套完全不同的玩法</strong>，而不是一套「看图猜词」通吃。
+      这是本方案最重要的一条结论，下面的活动设计全部由它推导而来。</p>
+  </div>
+
+  <h4>③ 发音音频 — 本机词典里就有，且是真人录音</h4>
+
+  <div class="key">
+    <span class="lab">本机实测 · 词典 mdd/mdx</span>
+    <p>本机有一对标准 MDict 格式的 <code>.mdd</code>（793MB）+ <code>.mdx</code>（22MB），
+      用 <code>mdict-utils</code> 已成功解出。内含：</p>
+    <p>· <strong>101,727 个发音 MP3</strong>　· <strong>1,683 张 1000×1000 真实照片</strong>　·
+       UK/US 双音标　· 词频星级（1–5 星）</p>
+    <p>实测提取的音频规格：<strong>44.1 kHz 单声道 64 kbps，单词时长 0.68–1.11 秒，7–9 KB/词</strong>
+      —— 采样率和本机 ES8311 编解码器<strong>原生一致，不需要重采样</strong>。
+      真人录音，音质远好于 TTS 合成。</p>
+  </div>
+
+  <h4>命名规则（决定了抽取难度）</h4>
+  <div class="flow"><pre>
+apple 词条 HTML 里的引用：
+
+  &lt;a href="<b>sound://mp3/02214.mp3</b>"&gt;          <i>← 英音：数字编号，必须解析 MDX 才能拿到</i>
+    &lt;span class="pron type_uk"&gt;æpəl&lt;/span&gt;
+  &lt;a href="<b>sound://mp3/en_us_apple.mp3</b>"&gt;    <i>← 美音：直接按词名！不用解析 HTML</i>
+    &lt;span class="pron type_us"&gt;ˈæpəl&lt;/span&gt;
+  &lt;span class="level level3 roundRed"&gt;              <i>← 词频星级，可直接拿来做难度分级</i>
+</pre></div>
+
+  <div class="tw"><table>
+    <tr><th>音源</th><th>规模</th><th>抽取方式</th><th>结论</th></tr>
+    <tr><td><b>词典美音</b> <span class="ok">✅ 实测</span></td>
+      <td><b>31,311</b> 条<br><code>en_us_&lt;词&gt;.mp3</code></td>
+      <td class="ok">按词名直取，<b>零解析成本</b></td>
+      <td class="ok"><b>主力音源。</b>70 个儿童高频词实测<b>命中 58 个（83%）</b>。
+        国内小学教材本来就以美音为主</td></tr>
+    <tr><td>词典英音</td><td>其余约 7 万条<br>数字编号</td>
+      <td class="mid">需解析 MDX 词条 HTML<br>建 词→编号 映射表</td>
+      <td>补齐美音缺的词。工作量不大，管线里一次性建表即可</td></tr>
+    <tr><td>Piper TTS 兜底</td><td>不限</td><td>本地合成</td>
+      <td>实测仍缺的 12 个词（<code>sun / star / eye / milk / shoe / horse</code> 等）用它补。
+        <b>数量少，可人工听一遍质检</b></td></tr>
+  </table></div>
+
+  
+
+  <h4>④ 句子</h4>
+  <div class="tw"><table>
+    <tr><th>来源</th><th>规模</th><th>获取</th><th>用法</th></tr>
+    <tr><td><b>Tatoeba</b></td><td>90 万+ 校对过的英语句</td>
+      <td>开放开放</td>
+      <td class="ok"><b>句子的唯一可行来源。</b>过滤规则：长度 ≤ 8 词 &amp; 所有词都在目标词表内
+          &amp; 含目标 sight word → 自动筛出适合 K–G3 的例句。还自带中文翻译对照</td></tr>
+  </table></div>
+
+  
+</section>
+
+<!-- ============ 2. 硬件约束 ============ -->
+<section>
+  <h2><span class="n">02</span> &nbsp;硬件约束推导</h2>
+  <h3>这块表能做什么英语 app</h3>
+
+  <p>设计不能凭空来。先把现有代码里的硬约束摊开，交互形态基本就被这些约束<strong>逼</strong>出来了。</p>
+
+  <div class="grid g3">
+    <div class="card"><div class="h"><span class="num">1</span>只有 2 个物理键</div>
+      <div class="d">A=GPIO2 / B=GPIO1，位于表圈 10 点和 2 点方向。<code>KeyManager</code> 已定义
+        A=Previous、B=Next、A+B长按=回主页。<br><br>
+        <b>推论：所有答题必须是二选一。</b>四选一在这块硬件上做不了。</div></div>
+    <div class="card"><div class="h"><span class="num">2</span>466×466 圆屏</div>
+      <div class="d">半径 233，任何像素跑出圆外就是被切掉。现有 host sim 已有
+        <code>countOutsideCircle()</code> 断言。<br><br>
+        <b>推论：不能排长句</b>，句子要拆行居中；单词字号可以做得很大。</div></div>
+    <div class="card"><div class="h"><span class="num">3</span>纯黑 AMOLED</div>
+      <div class="d">现有两个 app 都是纯黑底 + 单色高亮，点亮面积 &lt;20% 省电。<br><br>
+        <b>推论：图片要么用透明底 PNG，要么去背。</b>白底方图贴上去会非常刺眼且费电。</div></div>
+    <div class="card"><div class="h"><span class="num">4</span>ES8311 喇叭 + 麦克风</div>
+      <div class="d">44.1kHz 立体声编解码，TX+RX 都通，<code>Hal::audioRecord()</code> 现成。<br><br>
+        <b>推论：这是英语 app 相对汉字/数学的杀手锏。</b>汉字数学用不上声音，
+        英语的听说是刚需，麦克风还能做跟读。</div></div>
+    <div class="card"><div class="h"><span class="num">5</span>存储天花板</div>
+      <div class="d">factory 分区 11MB 已用 2.69MB，<b>剩 8.3MB</b>；
+        另有 <b>4.875MB 的 FAT 分区 <code>/spiflash</code> 完全没用</b>，已挂载。<br><br>
+        <b>推论：内容放 FAT，代码放 factory。</b>Flash 已 100% 分配完，扩容只能从 storage 里割。</div></div>
+    <div class="card"><div class="h"><span class="num">6</span>联网是从零开始</div>
+      <div class="d">Wi-Fi 在 sdkconfig 里是<b>默认开着但从没被调用过</b>，
+        应用层零网络代码，分区表<b>没有 OTA 槽</b>。<br><br>
+        <b>推论：配网 UI、HTTP 客户端、断网降级全要新建</b>，这是本项目最大的新增工作量。</div></div>
+  </div>
+
+  <div class="key">
+    <span class="lab">最省力的一条路</span>
+    <p><code>app_math</code> 已经验证了「<strong>上半屏两张大卡片，正对着 A/B 两个物理键</strong>」这个形态
+      —— 孩子看到卡片就知道按哪个键，不用教。
+      <strong>英语的听音选图、看词选图、句子填空，全部可以复用这套布局。</strong>
+      这意味着交互层的风险接近于零，新增的复杂度集中在内容管线和联网，而不是 UI。</p>
+  </div>
+</section>
+
+<!-- ============ 3. 内容体系 ============ -->
+<section>
+  <h2><span class="n">03</span> &nbsp;内容分级</h2>
+  <h3>幼儿园 → 三年级，五级阶梯</h3>
+
+  <div class="key">
+    <span class="lab">范围调整 · 2026-08-21 确认</span>
+    <p><strong>暂不做跟读和句子填空。</strong>受众年龄偏小，一切以「有图 + 有声反馈」的趣味形式为主。</p>
+    <p>这个决定有个直接后果要说清楚：<strong>Dolch 的 220 个服务词失去了载体</strong>
+      —— 它们既画不出图，又不能靠填空练，那就没法教了。
+      所以词表主干必须换：<strong>从「Dolch 服务词」改成「能配图的具象词」</strong>。</p>
+    <p>好消息是 <strong>Dolch 自带的 95 个名词表全是具象词</strong>（apple / bird / box / cake / cat / dog…），
+      本来就有图有音。以它为核心，再用剑桥 Starters 和 PEP 三上/三下的具象词扩到约 600 词，
+      足够撑满幼儿园到三年级。sight words 留到 L5 之后再议。</p>
+  </div>
+
+  <div class="tw"><table>
+    <tr><th>级别</th><th>对应学段</th><th>词表来源</th><th>词量</th><th>主要活动</th></tr>
+    <tr><td class="ok"><b>L1</b></td><td>幼儿园小/中班</td>
+      <td>动物 / 食物 / 颜色 / 数字 1–10</td><td>~80</td>
+      <td>看图听词 · <b>听声辨物</b><br><span style="font-size:12px">纯听说，屏幕上的英文只是陪衬</span></td></tr>
+    <tr><td class="ok"><b>L2</b></td><td>幼儿园大班</td>
+      <td><b>Dolch 95 名词</b> + 身体 / 交通 / 家庭</td><td>~160</td>
+      <td>+ 听音选图</td></tr>
+    <tr><td class="ok"><b>L3</b></td><td>一年级</td>
+      <td>+ 文具 / 衣物 / 天气 / 常见动作动词</td><td>~260</td>
+      <td>+ 看词选图<span style="font-size:12px">（首次要求认字形）</span></td></tr>
+    <tr><td class="ok"><b>L4</b></td><td>二年级</td>
+      <td>+ 剑桥 <b>Starters</b> 具象词 + 形容词</td><td>~420</td>
+      <td>+ <b>图片渐显猜词</b><span style="font-size:12px">（复习旧词用）</span></td></tr>
+    <tr><td class="ok"><b>L5</b></td><td>三年级</td>
+      <td>+ <b>PEP 三上/三下</b> + 剑桥 Movers 具象词</td><td>~600</td>
+      <td>+ 限时闪认挑战</td></tr>
+  </table></div>
+
+  <h4>趣味性从哪来 —— 全部押在图和声上</h4>
+  <div class="grid g3">
+    <div class="card"><div class="h">🔊 真人发音</div><div class="d">
+      词典里的真人录音，<b>不是机器合成</b>。每张图自动播报，点一下复读。
+      发音好不好听，直接决定孩子愿不愿意听第二遍。</div></div>
+    <div class="card"><div class="h">🐄 真实音效</div><div class="d">
+      动物叫声、汽车喇叭、下雨声。<b>「听声辨物」几乎零门槛</b>，
+      而且它绑定的是「声音↔实物↔英文词」三者，比单纯看图更立体。
+      音效取自 freesound 的 CC0 素材。</div></div>
+    <div class="card"><div class="h">✨ 即时反馈</div><div class="d">
+      答对：上扬三音 + 星星迸开 + 马达短震。答错：柔和低音 + 正确项高亮。
+      <b>绝不惩罚、不扣分、不显示红叉。</b></div></div>
+  </div>
+</section>
+
+<!-- ============ 4. 交互原型 ============ -->
+<section>
+  <h2><span class="n">04</span> &nbsp;交互原型</h2>
+  <h3>可以直接点的设备模拟</h3>
+  <p>下面是 1:1 还原的圆屏 + 两个物理键。<strong>点左右两侧的 A / B 键，或直接点屏幕上的卡片</strong>，
+     也可以用键盘 <code>A</code> / <code>B</code>。左侧列表可跳到任意环节。</p>
+
+  <div class="proto">
+    <div class="devcol">
+      <div class="devwrap">
+        <div class="ear" id="earA" onclick="press('A')">A</div>
+        <div class="ear" id="earB" onclick="press('B')">B</div>
+        <div class="screen">
+
+          <!-- S0 单元选择 -->
+          <div class="sc on" id="s0">
+            <div class="prog">L2 · 幼儿园大班</div>
+            <div class="ugrid">
+              <div class="ucell sel"><div class="ue">🐶</div><div class="un">ANIMALS</div></div>
+              <div class="ucell"><div class="ue">🍎</div><div class="un">FOOD</div></div>
+              <div class="ucell"><div class="ue">🎨</div><div class="un">COLORS</div></div>
+              <div class="ucell"><div class="ue">🚌</div><div class="un">GO</div></div>
+              <div class="ucell"><div class="ue">👋</div><div class="un">SIGHT</div></div>
+              <div class="ucell"><div class="ue">🔤</div><div class="un">ABC</div></div>
+            </div>
+            <div class="hint">A ‹ 切换单元 ›  B　　轻触进入</div>
+          </div>
+
+          <!-- S1 看图卡 -->
+          <div class="sc" id="s1">
+            <div class="arc" style="border-top-color:var(--en)"></div>
+            <div class="prog">3 / 12　🔊</div>
+            <div class="huge">🐘</div>
+            <div class="big" style="margin-top:12px">elephant</div>
+            <div class="ipa">/ˈelɪfənt/</div>
+            <div class="zh">大象</div>
+            <div class="hint">轻触复读　　B 下一个 ›</div>
+          </div>
+
+          <!-- S2 听音选图 -->
+          <div class="sc" id="s2">
+            <div class="prog">听一听，选出来</div>
+            <div class="ans L" onclick="press('A')"><div class="em">🐘</div></div>
+            <div class="ans R" onclick="press('B')"><div class="em">🐦</div></div>
+            <div style="margin-top:96px" class="mic">🔊</div>
+            <div class="wave"><i style="animation-delay:0s"></i><i style="animation-delay:.1s"></i>
+              <i style="animation-delay:.2s"></i><i style="animation-delay:.3s"></i>
+              <i style="animation-delay:.4s"></i><i style="animation-delay:.5s"></i></div>
+            <div class="hint">A 左　　B 右</div>
+          </div>
+
+          <!-- S3 答对 -->
+          <div class="sc" id="s3">
+            <div class="prog">听一听，选出来</div>
+            <div class="ans L right"><div class="em">🐘</div><div class="wd" style="font-size:15px;color:var(--en)">elephant</div></div>
+            <div class="ans R wrong"><div class="em">🐦</div></div>
+            <div style="margin-top:104px;font-size:62px">✓</div>
+            <div class="big" style="font-size:29px;color:var(--en);margin-top:6px">Great!</div>
+            <div class="hint">震动 + 上扬三音　600ms 后继续</div>
+          </div>
+
+          <!-- S4 看词选图 -->
+          <div class="sc" id="s4">
+            <div class="prog">7 / 12</div>
+            <div class="ans L" onclick="press('A')"><div class="em">🍎</div></div>
+            <div class="ans R" onclick="press('B')"><div class="em">🍌</div></div>
+            <div style="margin-top:100px" class="big">apple</div>
+            <div class="ipa">🔊 轻触听发音</div>
+            <div class="hint">A 左　　B 右</div>
+          </div>
+
+          <!-- S5 听声辨物（音效游戏） -->
+          <div class="sc" id="s5">
+            <div class="prog">这是谁的声音？</div>
+            <div class="ans L" onclick="press('A')"><div class="em">🐄</div></div>
+            <div class="ans R" onclick="press('B')"><div class="em">🐑</div></div>
+            <div style="margin-top:96px;font-size:50px">🔊</div>
+            <div class="big" style="font-size:24px;color:var(--en);margin-top:4px">“Moo~”</div>
+            <div class="wave"><i style="animation-delay:0s"></i><i style="animation-delay:.12s"></i>
+              <i style="animation-delay:.24s"></i><i style="animation-delay:.36s"></i>
+              <i style="animation-delay:.48s"></i></div>
+            <div class="hint">真实动物叫声　　A / B 选</div>
+          </div>
+
+          <!-- S6 图片渐显猜词 -->
+          <div class="sc" id="s6">
+            <div class="prog">是什么呢？</div>
+            <div class="ans L" onclick="press('A')"><div class="wd" style="font-size:19px">tiger</div></div>
+            <div class="ans R" onclick="press('B')"><div class="wd" style="font-size:19px">lion</div></div>
+            <div style="margin-top:92px;font-size:82px;filter:blur(9px);opacity:.75">🐯</div>
+            <div class="ipa" style="margin-top:10px">越早认出　星星越多 ★★☆</div>
+            <div class="hint">图片正在慢慢变清晰…</div>
+          </div>
+
+          <!-- S7 结果 -->
+          <div class="sc" id="s7">
+            <div class="ttl">ANIMALS · L2</div>
+            <div class="stars"><span class="star f"></span><span class="star f"></span><span class="star"></span></div>
+            <div class="big" style="font-size:76px;margin-top:6px">10<span style="font-size:29px;color:var(--tx3)">/12</span></div>
+            <div class="zh" style="font-size:17px;color:var(--en);margin-top:4px">很棒！再来一次拿三星</div>
+            <div style="font:500 12px var(--mono);color:var(--tx3);margin-top:14px">
+              需巩固： bird · duck</div>
+            <div class="hint">A 再来一次　　B 下一单元 ›</div>
+          </div>
+
+          <!-- S8 同步 -->
+          <div class="sc" id="s8">
+            <div class="arc" style="border-top-color:var(--mt);animation:sp 1.4s linear infinite"></div>
+            <div style="font-size:44px">☁️</div>
+            <div class="big" style="font-size:23px;margin-top:14px">正在下载<br>Unit 07 · Food</div>
+            <div class="ipa" style="color:var(--mt);margin-top:10px">412 KB · 68%</div>
+            <div style="font:500 12px var(--mono);color:var(--tx3);margin-top:12px">
+              上传学习记录 · 拉取今日复习</div>
+            <div class="hint">Wi-Fi 已连接　　后台进行，可继续学</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="pinfo">
+      <ul class="steps" id="steps">
+        <li class="act" onclick="go(0)"><b>① 单元选择</b><span>圆屏九宫格，A/B 移动选中框，轻触进入。沿用 app_hanzi 的 browse 结构</span></li>
+        <li onclick="go(1)"><b>② 看图认词（输入）</b><span>图 + 词 + 音标 + 中文，自动播发音。轻触复读，B 下一个。零压力，先混个脸熟</span></li>
+        <li onclick="go(2)"><b>③ 听音选图（A 类词）</b><span>只播声音，两张图二选一。<b>先建立音↔义，不经过文字</b>，这是幼儿阶段最有效的形式</span></li>
+        <li onclick="go(3)"><b>④ 答对反馈</b><span>正确卡描边发光 + 补上单词、振动马达短震、上扬三音。复用 app_math 的 600ms 冻结</span></li>
+        <li onclick="go(4)"><b>⑤ 看词选图（认读）</b><span>反过来：给文字选图。建立形↔义。L2 以上才解锁</span></li>
+        <li onclick="go(5)"><b>⑥ 听声辨物（音效游戏）</b><span>放真实动物叫声 / 环境音，选对应的图。<b>幼儿最吃这一套</b>，几乎不用教就会玩。音效取自 freesound CC0</span></li>
+        <li onclick="go(6)"><b>⑦ 图片渐显猜词</b><span>图从模糊慢慢变清晰，<b>越早认出星星越多</b>。把「等待」变成紧张感，复习旧词时特别耐玩</span></li>
+        <li onclick="go(7)"><b>⑧ 结果页</b><span>三星评级 + 错词回顾。错词自动进入 SM-2 复习队列</span></li>
+        <li onclick="go(8)"><b>⑨ 后台同步</b><span>Wi-Fi 下静默上传答题记录、下载下一单元资源包。<b>全程不打断学习</b></span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="key">
+    <span class="lab">交互设计的三条铁律</span>
+    <p><strong>1 · 一切归结为二选一。</strong>2 个物理键是硬约束，但对 4–9 岁孩子反而是优点 ——
+      二选一决策快、挫败感低、不需要读说明。</p>
+    <p><strong>2 · 声音先行，文字后置。</strong>L1/L2 阶段屏幕上的英文单词只是「陪衬」，
+      真正的教学在耳朵里。这条决定了<strong>音频资源的优先级高于图片</strong>。</p>
+    <p><strong>3 · 单次会话 ≤ 3 分钟。</strong>一个单元 12 题，做完就给星星。
+      这是块手表不是 iPad，<strong>短、频、可随时中断</strong>才是它的正确用法。</p>
+  </div>
+</section>
+
+<!-- ============ 5. 架构 ============ -->
+<section>
+  <h2><span class="n">05</span> &nbsp;端云架构</h2>
+  <h3>后端到底该干什么</h3>
+
+  <p>后端最没价值的用法是「当个文件服务器」。真正值钱的是另外三件事：
+     <strong>内容管线、自适应复习、家长可见性</strong>。</p>
+
+  <div class="flow"><pre>
+<i>【 内容管线 · 离线跑一次，产出二进制包 】</i>
+
+  Dolch 95 名词 ─┐
+  剑桥 Starters ─┼─> <b>选词 &amp; 分级</b> ─> 词条 word_id
+  PEP 三上/三下 ─┘   <i>（用词典词频星级 + CEFR 校准难度）</i>
+                                               │
+                                               ├─> ARASAAC API ─┐
+                                               │   OpenMoji     ├─> <b>去背 + 裁 160×160</b>
+                                               │   词典配图     ┘        │
+                                               │                         v
+                                               │                   <b>JPEG q80 ≈ 6KB</b>
+                                               │
+                                               ├─> <b>词典 .mdd</b> ─> <i>en_us_&lt;词&gt;.mp3 直取（83%）</i>
+                                               │        │              <i>缺的用英音编号 / Piper 兜底</i>
+                                               │        v
+                                               │   44.1kHz 单声道 ─> <b>ADPCM ≈ 8KB/词</b>
+                                               │                     <i>（采样率与 ES8311 原生一致）</i>
+                                               │
+                                               └─> freesound CC0 ─> 动物叫声 / 环境音
+
+                                                        │
+                                                        v
+                                          <b>.epk 资源包（每单元一个，≈300KB）</b>
+                                     header │ 词条表 │ 图片区 │ 音频区 │ 音效区
+                                     每条带 source_id  <i>← 换源时不用重推词表</i>
+
+<i>【 运行时 】</i>
+
+  <u>设备</u>                                       <u>后端</u>
+   固件内置 L1 首单元 ──── 开箱即用，不联网也能玩
+   /spiflash FAT 4.875MB ── LRU 缓存 ~11 个单元
+        │
+        │  ① POST 学习记录（word_id, 对错, 反应时长）
+        ├──────────────────────────────────>  <b>SM-2 间隔重复</b>
+        │                                      算出「今日该复习哪些词」
+        │  ② GET 今日任务 + 需要的 .epk 清单
+        <──────────────────────────────────┤
+        │  ③ GET /pack/{unit}.epk （断点续传）
+        <──────────────────────────────────┤
+                                               │
+                                               └─> <b>家长端</b>（微信小程序/网页）
+                                                   学了多少词 · 哪些没掌握 · 学习曲线
+</pre></div>
+
+  <div class="grid g3">
+    <div class="card"><div class="h">离线优先</div><div class="d">
+      固件内置 L1 第一单元（约 400KB）。<b>拿到手不配网就能用</b>，
+      联网只是「解锁更多 + 更聪明的复习」。避免 Wi-Fi 一断孩子就用不了。</div></div>
+    <div class="card"><div class="h">自适应复习</div><div class="d">
+      SM-2 算法放<b>后端</b>而不是设备 —— 设备只上传原始答题事件。
+      算法要调参时改后端即可，不用给一屋子设备刷固件。</div></div>
+    <div class="card"><div class="h">内容热更新</div><div class="d">
+      加新单元、修错音、换图，<b>只需重跑管线传 .epk</b>。
+      分区表现在没有 OTA 槽，固件升级很麻烦，内容和代码解耦就绕开了这个坑。</div></div>
+  </div>
+
+  <h4>存储预算核算</h4>
+  <div class="tw"><table>
+    <tr><th>项</th><th>单位大小</th><th>说明</th></tr>
+    <tr><td>图片 160×160 JPEG q80</td><td>≈ 6 KB</td><td>LVGL 9.5 自带 tjpgd 解码器，直接可用。
+        词典原图 1000×1000 正方形，缩放后正好居中于圆屏</td></tr>
+    <tr><td class="ok"><b>单词音频 · 直接沿用原始 MP3</b></td><td class="ok"><b>7–9 KB</b></td>
+      <td><b>不转码。</b>原文件就是 44.1kHz 单声道 64kbps，加 libhelix-mp3 解码器（约 30KB 代码）即可</td></tr>
+    <tr><td><span style="text-decoration:line-through;opacity:.5">转 16kHz ADPCM</span></td>
+      <td><span style="opacity:.5">≈ 8 KB</span></td>
+      <td class="mid"><b>已否决。</b>体积和 MP3 几乎一样（44.1kHz ADPCM 反而要 22KB/秒，
+        必须降到 16kHz 才是 8KB），却白白牺牲音质。<b>留原始 MP3 更划算</b></td></tr>
+    <tr><td>动物叫声 / 音效</td><td>≈ 10 KB</td><td>1–1.5 秒 MP3，只有含动物/交通的单元需要</td></tr>
+    <tr><td><b>单个单元（20 词）</b></td><td class="ok"><b>≈ 300 KB</b></td><td>20×(6+8) + 音效 + 索引</td></tr>
+    <tr><td><b>/spiflash 可缓存</b></td><td class="ok"><b>≈ 16 个单元</b></td>
+      <td>4.875MB ÷ 300KB。LRU 淘汰。<b>全部 600 词约 30 个单元 = 9MB</b>，
+        装不下全量，所以缓存机制是必需的</td></tr>
+    <tr><td>固件新增代码</td><td>≈ 300 KB</td><td>Wi-Fi 栈 + HTTP + JPEG + ADPCM + UI。factory 剩 8.3MB，<b>非常宽裕</b></td></tr>
+  </table></div>
+
+  <div class="warnbox">
+    <span class="lab">要提前定的两件事</span>
+    <p><strong>1 · 配网方式。</strong>这块表只有 2 个键，输 Wi-Fi 密码是不可能的。
+      必须走 <b>SmartConfig / ESP-Touch</b> 或 <b>BluFi</b>，用手机 App 一键配网。这是新增工作量的大头。<br>
+      <strong>2 · 分区表要不要动。</strong>Flash 已 100% 分配。当前 8.3MB 代码余量 + 4.875MB 内容余量够用；
+      但如果日后想上 OTA，得先从 storage 里割一块出来 —— <b>越早决定越好，改分区表会清空用户数据</b>。</p>
+  </div>
+</section>
+
+<!-- ============ 6. 路线 ============ -->
+<section>
+  <h2><span class="n">06</span> &nbsp;实施路线</h2>
+  <h3>先离线跑通，再联网</h3>
+  <p>刻意把联网放在后面 —— 前两期完全不碰 Wi-Fi，
+     用<strong>编译进固件的一个单元</strong>验证交互和孩子的真实反应。玩法对不对，比资源多不多重要得多。</p>
+
+  <div class="ph"><div class="phn">P0</div><div class="phc">
+    <div class="t">内容管线原型（不碰固件）</div>
+    <div class="d">纯 Python，四步：① 从本机词典 <code>.mdd</code> 批量抽 <code>en_us_&lt;词&gt;.mp3</code>
+      和音标 → ② 调 ARASAAC / OpenMoji 拉图并去背 → ③ 转码（MP3→ADPCM、图→160×160 JPEG）
+      → ④ 打出第一个 <code>.epk</code>。
+      <b>先把一个单元的数据做出来看质量</b>：图好不好看、音准不准、一个单元多大，这一步全能验。</div>
+    <div class="o">产出 tools/english_pipeline/ + unit_L2_animals.epk</div></div></div>
+
+  <div class="ph"><div class="phn">P1</div><div class="phc">
+    <div class="t">离线 app_english，单元编译进固件</div>
+    <div class="d">按 app_math 的模式建 <code>logic/</code>（无 LVGL/IDF，可主机测试）+ <code>view/</code>。
+      实现<b>看图认词 + 听音选图 + 结果页</b>三件套。资源直接进 .rodata，不碰文件系统和网络。
+      同步建 <code>tools/english_host_test/</code>，复用现成的圆屏越界断言。</div>
+    <div class="o">产出 可刷机的完整体验 · 给孩子试用 · 拿真实反馈</div></div></div>
+
+  <div class="ph"><div class="phn">P2</div><div class="phc">
+    <div class="t">音效玩法 + 进度存档</div>
+    <div class="d">加<b>听声辨物</b>（freesound CC0 音效）和<b>图片渐显猜词</b>，
+      补齐即时反馈（音效 / 星星 / 振动）。NVS 存进度（新建 <code>"english"</code> 命名空间）。
+      <b>到这一步离线形态就完整了</b> —— 不做跟读、不做填空。</div>
+    <div class="o">产出 L1–L3 三级内容 · 完整离线闭环</div></div></div>
+
+  <div class="ph"><div class="phn">P3</div><div class="phc">
+    <div class="t">联网：配网 + 资源包下载</div>
+    <div class="d">SmartConfig 配网 UI、HTTP 客户端、.epk 下载落地到 <code>/spiflash</code>、
+      LRU 缓存管理、断网降级。<b>这一期风险最高</b>，因为项目此前完全没有网络代码。</div>
+    <div class="o">产出 内容可热更新 · 不再受固件体积限制</div></div></div>
+
+  <div class="ph"><div class="phn">P4</div><div class="phc">
+    <div class="t">后端：自适应复习 + 家长端</div>
+    <div class="d">学习记录上报、SM-2 排程、今日任务下发。家长端微信小程序看进度。
+      <b>这一期才是这个产品真正区别于「点读机」的地方。</b></div>
+    <div class="o">产出 千词级内容库 · 个性化复习 · 家长可见</div></div></div>
+
+  <div class="key">
+    <span class="lab">我的建议</span>
+    <p>先做 <strong>P0</strong>。它是纯 Python、半天到一天的量、完全不动固件，
+      但能一次性回答三个最关键的未知数：<strong>ARASAAC 的图放在圆屏上好不好看、
+      Piper 合成的音孩子爱不爱听、一个单元到底多大</strong>。
+      这三个答案会显著改变后面所有设计。在没有实物素材前讨论交互细节，性价比不高。</p>
+  </div>
+</section>
+  <div class="foot">M5StopWatch-Kids · app_english 设计提案 · 2026-08-21</div>
+</div>
+
+<script>
+const N = 9;
+let cur = 0;
+function go(i){
+  cur = (i + N) % N;
+  for (let k = 0; k < N; k++){
+    document.getElementById('s' + k).classList.toggle('on', k === cur);
+    document.querySelectorAll('#steps li')[k].classList.toggle('act', k === cur);
+  }
+}
+function press(k){
+  const ear = document.getElementById(k === 'A' ? 'earA' : 'earB');
+  ear.classList.add('hit');
+  setTimeout(() => ear.classList.remove('hit'), 130);
+  // 在选择类页面上，按键=作答 -> 跳到反馈；其余情况前进/后退
+  if (cur === 2 || cur === 4 || cur === 5 || cur === 6) { go(3); return; }
+  go(k === 'A' ? cur - 1 : cur + 1);
+}
+document.addEventListener('keydown', e => {
+  const c = e.key.toLowerCase();
+  if (c === 'a' || c === 'arrowleft')  { e.preventDefault(); press('A'); }
+  if (c === 'b' || c === 'arrowright') { e.preventDefault(); press('B'); }
+});
+</script>
+<style>@keyframes sp{to{transform:rotate(330deg)}}</style>
+</body>
+</html>

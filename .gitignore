@@ -1,0 +1,89 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# MacOS desktop metadata files
+.DS_Store
+
+# Build files
+build/
+cmake-build-*/
+/components/
+managed_components/
+
+# PlatformIO
+.pio/
+
+# VSCode
+.vscode/
+.cache/
+
+# Python virtual environment
+.venv/
+
+# Debug / Release files
+Debug/
+debug/
+Release/
+release/
+out/
+bin/
+obj/
+
+*.code-workspace
+
+sdkconfig
+sdkconfig.old
+
+# hanzi pipeline: downloaded sources and golden renders (regenerable)
+tools/hanzi_pipeline/.cache/
+build_host*/
+tools/math_pipeline/.cache/
+build_math*/
+build_english*/
+# The English pipeline's cache is tracked on purpose: it holds the fetched
+# pictograms and the extracted word audio (~26 MB for 480 words), so a fresh
+# clone can rebuild the blob without the mdd or network access. Overrides the
+# generic `.cache/` rule above. Prune it when words leave the list -- nothing
+# in the build does that for you.
+!tools/english_pipeline/.cache/
+# ...but not the regenerable parts of it. The blob is byte-identical to the
+# copy the firmware links (main/assets/english/english_data.bin) and the
+# contact sheets fall out of any build, so tracking either just doubles the
+# repo for nothing. The fetched pictograms and extracted audio DO stay: those
+# are what a fresh clone cannot reproduce without the dictionary and network.
+tools/english_pipeline/.cache/english_data.bin
+tools/english_pipeline/.cache/preview/
+tools/english_pipeline/.cache/search/
+
+# host sim screenshots
+*.ppm

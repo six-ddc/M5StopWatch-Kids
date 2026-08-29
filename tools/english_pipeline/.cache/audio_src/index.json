@@ -1,0 +1,2397 @@
+{
+ "accordion": {
+  "accent": "us",
+  "file": "accordion.mp3",
+  "picked_by": "name match (us)"
+ },
+ "airplane": {
+  "accent": "us",
+  "file": "airplane.mp3",
+  "picked_by": "name match (us)"
+ },
+ "airport": {
+  "accent": "us",
+  "file": "airport.mp3",
+  "picked_by": "name match (us)"
+ },
+ "ambulance": {
+  "accent": "us",
+  "file": "ambulance.mp3",
+  "picked_by": "name match (us)"
+ },
+ "angry": {
+  "accent": "us",
+  "file": "angry.mp3",
+  "picked_by": "name match (us)"
+ },
+ "ant": {
+  "accent": "uk",
+  "file": "ant.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "apple": {
+  "accent": "us",
+  "file": "apple.mp3",
+  "picked_by": "name match (us)"
+ },
+ "arm": {
+  "accent": "us",
+  "file": "arm.mp3",
+  "picked_by": "name match (us)"
+ },
+ "axe": {
+  "accent": "uk",
+  "file": "axe.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "baby": {
+  "accent": "us",
+  "file": "baby.mp3",
+  "picked_by": "name match (us)"
+ },
+ "backpack": {
+  "accent": "us",
+  "file": "backpack.mp3",
+  "picked_by": "name match (us)"
+ },
+ "badminton": {
+  "accent": "us",
+  "file": "badminton.mp3",
+  "picked_by": "name match (us)"
+ },
+ "ball": {
+  "accent": "us",
+  "file": "ball.mp3",
+  "picked_by": "name match (us)"
+ },
+ "balloon": {
+  "accent": "us",
+  "file": "balloon.mp3",
+  "picked_by": "name match (us)"
+ },
+ "banana": {
+  "accent": "us",
+  "file": "banana.mp3",
+  "picked_by": "name match (us)"
+ },
+ "bank": {
+  "accent": "us",
+  "file": "bank.mp3",
+  "picked_by": "name match (us)"
+ },
+ "baseball": {
+  "accent": "us",
+  "file": "baseball.mp3",
+  "picked_by": "name match (us)"
+ },
+ "basket": {
+  "accent": "us",
+  "file": "basket.mp3",
+  "picked_by": "name match (us)"
+ },
+ "basketball": {
+  "accent": "us",
+  "file": "basketball.mp3",
+  "picked_by": "name match (us)"
+ },
+ "bat": {
+  "accent": "us",
+  "file": "bat.mp3",
+  "picked_by": "name match (us)"
+ },
+ "bathroom": {
+  "accent": "us",
+  "file": "bathroom.mp3",
+  "picked_by": "name match (us)"
+ },
+ "beach": {
+  "accent": "us",
+  "file": "beach.mp3",
+  "picked_by": "name match (us)"
+ },
+ "bear": {
+  "accent": "uk",
+  "file": "bear.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "bed": {
+  "accent": "us",
+  "file": "bed.mp3",
+  "picked_by": "name match (us)"
+ },
+ "bedroom": {
+  "accent": "us",
+  "file": "bedroom.mp3",
+  "picked_by": "name match (us)"
+ },
+ "bee": {
+  "accent": "uk",
+  "file": "bee.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "beef": {
+  "accent": "us",
+  "file": "beef.mp3",
+  "picked_by": "name match (us)"
+ },
+ "beetle": {
+  "accent": "us",
+  "file": "beetle.mp3",
+  "picked_by": "name match (us)"
+ },
+ "bell": {
+  "accent": "uk",
+  "file": "bell.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "belt": {
+  "accent": "us",
+  "file": "belt.mp3",
+  "picked_by": "name match (us)"
+ },
+ "bike": {
+  "accent": "us",
+  "file": "bike.mp3",
+  "picked_by": "name match (us)"
+ },
+ "bird": {
+  "accent": "us",
+  "file": "bird.mp3",
+  "picked_by": "name match (us)"
+ },
+ "black": {
+  "accent": "us",
+  "file": "black.mp3",
+  "picked_by": "name match (us)"
+ },
+ "blackboard": {
+  "accent": "us",
+  "file": "blackboard.mp3",
+  "picked_by": "name match (us)"
+ },
+ "blanket": {
+  "accent": "us",
+  "file": "blanket.mp3",
+  "picked_by": "name match (us)"
+ },
+ "blue": {
+  "accent": "uk",
+  "file": "blue.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "boat": {
+  "accent": "us",
+  "file": "boat.mp3",
+  "picked_by": "name match (us)"
+ },
+ "book": {
+  "accent": "us",
+  "file": "book.mp3",
+  "picked_by": "name match (us)"
+ },
+ "boots": {
+  "accent": "us",
+  "file": "boots.mp3",
+  "picked_by": "name match (us)"
+ },
+ "bored": {
+  "accent": null,
+  "file": null,
+  "picked_by": "no headword recording found"
+ },
+ "bottle": {
+  "accent": "us",
+  "file": "bottle.mp3",
+  "picked_by": "name match (us)"
+ },
+ "bowl": {
+  "accent": "uk",
+  "file": "bowl.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "bowling": {
+  "accent": "us",
+  "file": "bowling.mp3",
+  "picked_by": "name match (us)"
+ },
+ "boxing": {
+  "accent": "us",
+  "file": "boxing.mp3",
+  "picked_by": "name match (us)"
+ },
+ "boy": {
+  "accent": "us",
+  "file": "boy.mp3",
+  "picked_by": "name match (us)"
+ },
+ "branch": {
+  "accent": "us",
+  "file": "branch.mp3",
+  "picked_by": "name match (us)"
+ },
+ "bread": {
+  "accent": "us",
+  "file": "bread.mp3",
+  "picked_by": "name match (us)"
+ },
+ "broom": {
+  "accent": "us",
+  "file": "broom.mp3",
+  "picked_by": "name match (us)"
+ },
+ "brother": {
+  "accent": "us",
+  "file": "brother.mp3",
+  "picked_by": "name match (us)"
+ },
+ "brown": {
+  "accent": "us",
+  "file": "brown.mp3",
+  "picked_by": "name match (us)"
+ },
+ "bull": {
+  "accent": "us",
+  "file": "bull.mp3",
+  "picked_by": "name match (us)"
+ },
+ "bus": {
+  "accent": "us",
+  "file": "bus.mp3",
+  "picked_by": "name match (us)"
+ },
+ "butter": {
+  "accent": "us",
+  "file": "butter.mp3",
+  "picked_by": "name match (us)"
+ },
+ "butterfly": {
+  "accent": "us",
+  "file": "butterfly.mp3",
+  "picked_by": "name match (us)"
+ },
+ "button": {
+  "accent": "us",
+  "file": "button.mp3",
+  "picked_by": "name match (us)"
+ },
+ "cabbage": {
+  "accent": "us",
+  "file": "cabbage.mp3",
+  "picked_by": "name match (us)"
+ },
+ "cactus": {
+  "accent": "us",
+  "file": "cactus.mp3",
+  "picked_by": "name match (us)"
+ },
+ "cake": {
+  "accent": "us",
+  "file": "cake.mp3",
+  "picked_by": "name match (us)"
+ },
+ "camel": {
+  "accent": "us",
+  "file": "camel.mp3",
+  "picked_by": "name match (us)"
+ },
+ "camera": {
+  "accent": "us",
+  "file": "camera.mp3",
+  "picked_by": "name match (us)"
+ },
+ "candle": {
+  "accent": "us",
+  "file": "candle.mp3",
+  "picked_by": "name match (us)"
+ },
+ "cap": {
+  "accent": "us",
+  "file": "cap.mp3",
+  "picked_by": "name match (us)"
+ },
+ "car": {
+  "accent": "us",
+  "file": "car.mp3",
+  "picked_by": "name match (us)"
+ },
+ "carpet": {
+  "accent": "us",
+  "file": "carpet.mp3",
+  "picked_by": "name match (us)"
+ },
+ "carrot": {
+  "accent": "uk",
+  "file": "carrot.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "cat": {
+  "accent": "us",
+  "file": "cat.mp3",
+  "picked_by": "name match (us)"
+ },
+ "caterpillar": {
+  "accent": "us",
+  "file": "caterpillar.mp3",
+  "picked_by": "name match (us)"
+ },
+ "cave": {
+  "accent": "us",
+  "file": "cave.mp3",
+  "picked_by": "name match (us)"
+ },
+ "chair": {
+  "accent": "us",
+  "file": "chair.mp3",
+  "picked_by": "name match (us)"
+ },
+ "chalk": {
+  "accent": "us",
+  "file": "chalk.mp3",
+  "picked_by": "name match (us)"
+ },
+ "cheese": {
+  "accent": "us",
+  "file": "cheese.mp3",
+  "picked_by": "name match (us)"
+ },
+ "cherry": {
+  "accent": "uk",
+  "file": "cherry.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "chick": {
+  "accent": "us",
+  "file": "chick.mp3",
+  "picked_by": "name match (us)"
+ },
+ "chicken": {
+  "accent": "us",
+  "file": "chicken.mp3",
+  "picked_by": "name match (us)"
+ },
+ "chimney": {
+  "accent": "us",
+  "file": "chimney.mp3",
+  "picked_by": "name match (us)"
+ },
+ "chocolate": {
+  "accent": "us",
+  "file": "chocolate.mp3",
+  "picked_by": "name match (us)"
+ },
+ "chopsticks": {
+  "accent": "uk",
+  "file": "chopsticks.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "circle": {
+  "accent": "us",
+  "file": "circle.mp3",
+  "picked_by": "name match (us)"
+ },
+ "clean": {
+  "accent": "us",
+  "file": "clean.mp3",
+  "picked_by": "name match (us)"
+ },
+ "climb": {
+  "accent": "us",
+  "file": "climb.mp3",
+  "picked_by": "name match (us)"
+ },
+ "clock": {
+  "accent": "us",
+  "file": "clock.mp3",
+  "picked_by": "name match (us)"
+ },
+ "cloud": {
+  "accent": "us",
+  "file": "cloud.mp3",
+  "picked_by": "name match (us)"
+ },
+ "coat": {
+  "accent": "us",
+  "file": "coat.mp3",
+  "picked_by": "name match (us)"
+ },
+ "coconut": {
+  "accent": "us",
+  "file": "coconut.mp3",
+  "picked_by": "name match (us)"
+ },
+ "coffee": {
+  "accent": "us",
+  "file": "coffee.mp3",
+  "picked_by": "name match (us)"
+ },
+ "cold": {
+  "accent": "us",
+  "file": "cold.mp3",
+  "picked_by": "name match (us)"
+ },
+ "comb": {
+  "accent": "us",
+  "file": "comb.mp3",
+  "picked_by": "name match (us)"
+ },
+ "computer": {
+  "accent": "us",
+  "file": "computer.mp3",
+  "picked_by": "name match (us)"
+ },
+ "cook": {
+  "accent": "uk",
+  "file": "cook.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "cookie": {
+  "accent": "us",
+  "file": "cookie.mp3",
+  "picked_by": "name match (us)"
+ },
+ "corn": {
+  "accent": "us",
+  "file": "corn.mp3",
+  "picked_by": "name match (us)"
+ },
+ "cow": {
+  "accent": "us",
+  "file": "cow.mp3",
+  "picked_by": "name match (us)"
+ },
+ "crab": {
+  "accent": "us",
+  "file": "crab.mp3",
+  "picked_by": "name match (us)"
+ },
+ "crocodile": {
+  "accent": "us",
+  "file": "crocodile.mp3",
+  "picked_by": "name match (us)"
+ },
+ "cube": {
+  "accent": "us",
+  "file": "cube.mp3",
+  "picked_by": "name match (us)"
+ },
+ "cucumber": {
+  "accent": "us",
+  "file": "cucumber.mp3",
+  "picked_by": "name match (us)"
+ },
+ "cup": {
+  "accent": "us",
+  "file": "cup.mp3",
+  "picked_by": "name match (us)"
+ },
+ "cupboard": {
+  "accent": "us",
+  "file": "cupboard.mp3",
+  "picked_by": "name match (us)"
+ },
+ "curtain": {
+  "accent": "us",
+  "file": "curtain.mp3",
+  "picked_by": "name match (us)"
+ },
+ "cut": {
+  "accent": "us",
+  "file": "cut.mp3",
+  "picked_by": "name match (us)"
+ },
+ "cylinder": {
+  "accent": "us",
+  "file": "cylinder.mp3",
+  "picked_by": "name match (us)"
+ },
+ "daisy": {
+  "accent": "us",
+  "file": "daisy.mp3",
+  "picked_by": "name match (us)"
+ },
+ "dance": {
+  "accent": "us",
+  "file": "dance.mp3",
+  "picked_by": "name match (us)"
+ },
+ "dancer": {
+  "accent": "uk",
+  "file": "dancer.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "deer": {
+  "accent": "uk",
+  "file": "deer.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "desert": {
+  "accent": "us",
+  "file": "desert.mp3",
+  "picked_by": "name match (us)"
+ },
+ "desk": {
+  "accent": "us",
+  "file": "desk.mp3",
+  "picked_by": "name match (us)"
+ },
+ "diamond": {
+  "accent": "us",
+  "file": "diamond.mp3",
+  "picked_by": "name match (us)"
+ },
+ "dinosaur": {
+  "accent": "us",
+  "file": "dinosaur.mp3",
+  "picked_by": "name match (us)"
+ },
+ "dirty": {
+  "accent": "us",
+  "file": "dirty.mp3",
+  "picked_by": "name match (us)"
+ },
+ "doctor": {
+  "accent": "us",
+  "file": "doctor.mp3",
+  "picked_by": "name match (us)"
+ },
+ "dog": {
+  "accent": "us",
+  "file": "dog.mp3",
+  "picked_by": "name match (us)"
+ },
+ "doll": {
+  "accent": "uk",
+  "file": "doll.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "dolphin": {
+  "accent": "us",
+  "file": "dolphin.mp3",
+  "picked_by": "name match (us)"
+ },
+ "donkey": {
+  "accent": "us",
+  "file": "donkey.mp3",
+  "picked_by": "name match (us)"
+ },
+ "donut": {
+  "accent": "us",
+  "file": "donut.mp3",
+  "picked_by": "name match (us)"
+ },
+ "door": {
+  "accent": "us",
+  "file": "door.mp3",
+  "picked_by": "name match (us)"
+ },
+ "dragonfly": {
+  "accent": "us",
+  "file": "dragonfly.mp3",
+  "picked_by": "name match (us)"
+ },
+ "draw": {
+  "accent": "us",
+  "file": "draw.mp3",
+  "picked_by": "name match (us)"
+ },
+ "drawer": {
+  "accent": "us",
+  "file": "drawer.mp3",
+  "picked_by": "name match (us)"
+ },
+ "dress": {
+  "accent": "us",
+  "file": "dress.mp3",
+  "picked_by": "name match (us)"
+ },
+ "drill": {
+  "accent": "us",
+  "file": "drill.mp3",
+  "picked_by": "name match (us)"
+ },
+ "drink": {
+  "accent": "us",
+  "file": "drink.mp3",
+  "picked_by": "name match (us)"
+ },
+ "driver": {
+  "accent": "us",
+  "file": "driver.mp3",
+  "picked_by": "name match (us)"
+ },
+ "drum": {
+  "accent": "us",
+  "file": "drum.mp3",
+  "picked_by": "name match (us)"
+ },
+ "dry": {
+  "accent": "us",
+  "file": "dry.mp3",
+  "picked_by": "name match (us)"
+ },
+ "duck": {
+  "accent": "us",
+  "file": "duck.mp3",
+  "picked_by": "name match (us)"
+ },
+ "eagle": {
+  "accent": "us",
+  "file": "eagle.mp3",
+  "picked_by": "name match (us)"
+ },
+ "ear": {
+  "accent": "us",
+  "file": "ear.mp3",
+  "picked_by": "name match (us)"
+ },
+ "eat": {
+  "accent": "us",
+  "file": "eat.mp3",
+  "picked_by": "name match (us)"
+ },
+ "egg": {
+  "accent": "us",
+  "file": "egg.mp3",
+  "picked_by": "name match (us)"
+ },
+ "eight": {
+  "accent": "uk",
+  "file": "eight.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "elephant": {
+  "accent": "us",
+  "file": "elephant.mp3",
+  "picked_by": "name match (us)"
+ },
+ "eleven": {
+  "accent": "us",
+  "file": "eleven.mp3",
+  "picked_by": "name match (us)"
+ },
+ "empty": {
+  "accent": "us",
+  "file": "empty.mp3",
+  "picked_by": "name match (us)"
+ },
+ "eraser": {
+  "accent": "us",
+  "file": "eraser.mp3",
+  "picked_by": "name match (us)"
+ },
+ "excited": {
+  "accent": "us",
+  "file": "excited.mp3",
+  "picked_by": "name match (us)"
+ },
+ "eye": {
+  "accent": "uk",
+  "file": "eye.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "face": {
+  "accent": "us",
+  "file": "face.mp3",
+  "picked_by": "name match (us)"
+ },
+ "family": {
+  "accent": "us",
+  "file": "family.mp3",
+  "picked_by": "name match (us)"
+ },
+ "fan": {
+  "accent": "us",
+  "file": "fan.mp3",
+  "picked_by": "name match (us)"
+ },
+ "farm": {
+  "accent": "us",
+  "file": "farm.mp3",
+  "picked_by": "name match (us)"
+ },
+ "farmer": {
+  "accent": "us",
+  "file": "farmer.mp3",
+  "picked_by": "name match (us)"
+ },
+ "fat": {
+  "accent": "us",
+  "file": "fat.mp3",
+  "picked_by": "name match (us)"
+ },
+ "father": {
+  "accent": "us",
+  "file": "father.mp3",
+  "picked_by": "name match (us)"
+ },
+ "fence": {
+  "accent": "us",
+  "file": "fence.mp3",
+  "picked_by": "name match (us)"
+ },
+ "firefighter": {
+  "accent": "us",
+  "file": "firefighter.mp3",
+  "picked_by": "name match (us)"
+ },
+ "fish": {
+  "accent": "us",
+  "file": "fish.mp3",
+  "picked_by": "name match (us)"
+ },
+ "five": {
+  "accent": "us",
+  "file": "five.mp3",
+  "picked_by": "name match (us)"
+ },
+ "flag": {
+  "accent": "us",
+  "file": "flag.mp3",
+  "picked_by": "name match (us)"
+ },
+ "flamingo": {
+  "accent": "us",
+  "file": "flamingo.mp3",
+  "picked_by": "name match (us)"
+ },
+ "flower": {
+  "accent": "us",
+  "file": "flower.mp3",
+  "picked_by": "name match (us)"
+ },
+ "flute": {
+  "accent": "us",
+  "file": "flute.mp3",
+  "picked_by": "name match (us)"
+ },
+ "fly": {
+  "accent": "us",
+  "file": "fly.mp3",
+  "picked_by": "name match (us)"
+ },
+ "folder": {
+  "accent": "us",
+  "file": "folder.mp3",
+  "picked_by": "name match (us)"
+ },
+ "foot": {
+  "accent": "us",
+  "file": "foot.mp3",
+  "picked_by": "name match (us)"
+ },
+ "football": {
+  "accent": "us",
+  "file": "football.mp3",
+  "picked_by": "name match (us)"
+ },
+ "forest": {
+  "accent": "us",
+  "file": "forest.mp3",
+  "picked_by": "name match (us)"
+ },
+ "fork": {
+  "accent": "us",
+  "file": "fork.mp3",
+  "picked_by": "name match (us)"
+ },
+ "four": {
+  "accent": "uk",
+  "file": "four.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "fox": {
+  "accent": "us",
+  "file": "fox.mp3",
+  "picked_by": "name match (us)"
+ },
+ "fridge": {
+  "accent": "us",
+  "file": "fridge.mp3",
+  "picked_by": "name match (us)"
+ },
+ "frog": {
+  "accent": "us",
+  "file": "frog.mp3",
+  "picked_by": "name match (us)"
+ },
+ "full": {
+  "accent": "uk",
+  "file": "full.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "garage": {
+  "accent": "us",
+  "file": "garage.mp3",
+  "picked_by": "name match (us)"
+ },
+ "garden": {
+  "accent": "us",
+  "file": "garden.mp3",
+  "picked_by": "name match (us)"
+ },
+ "garlic": {
+  "accent": "us",
+  "file": "garlic.mp3",
+  "picked_by": "name match (us)"
+ },
+ "gate": {
+  "accent": "uk",
+  "file": "gate.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "giraffe": {
+  "accent": "us",
+  "file": "giraffe.mp3",
+  "picked_by": "name match (us)"
+ },
+ "girl": {
+  "accent": "us",
+  "file": "girl.mp3",
+  "picked_by": "name match (us)"
+ },
+ "glass": {
+  "accent": "us",
+  "file": "glass.mp3",
+  "picked_by": "name match (us)"
+ },
+ "glasses": {
+  "accent": "uk",
+  "file": "glasses.mp3",
+  "picked_by": "name match (uk)"
+ },
+ "globe": {
+  "accent": "us",
+  "file": "globe.mp3",
+  "picked_by": "name match (us)"
+ },
+ "gloves": {
+  "accent": "uk",
+  "file": "gloves.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "glue": {
+  "accent": "us",
+  "file": "glue.mp3",
+  "picked_by": "name match (us)"
+ },
+ "goat": {
+  "accent": "us",
+  "file": "goat.mp3",
+  "picked_by": "name match (us)"
+ },
+ "golf": {
+  "accent": "us",
+  "file": "golf.mp3",
+  "picked_by": "name match (us)"
+ },
+ "goose": {
+  "accent": "us",
+  "file": "goose.mp3",
+  "picked_by": "name match (us)"
+ },
+ "gorilla": {
+  "accent": "us",
+  "file": "gorilla.mp3",
+  "picked_by": "name match (us)"
+ },
+ "grandfather": {
+  "accent": "us",
+  "file": "grandfather.mp3",
+  "picked_by": "name match (us)"
+ },
+ "grandmother": {
+  "accent": "us",
+  "file": "grandmother.mp3",
+  "picked_by": "name match (us)"
+ },
+ "grape": {
+  "accent": "us",
+  "file": "grape.mp3",
+  "picked_by": "name match (us)"
+ },
+ "grass": {
+  "accent": "us",
+  "file": "grass.mp3",
+  "picked_by": "name match (us)"
+ },
+ "grasshopper": {
+  "accent": "us",
+  "file": "grasshopper.mp3",
+  "picked_by": "name match (us)"
+ },
+ "gray": {
+  "accent": "us",
+  "file": "gray.mp3",
+  "picked_by": "name match (us)"
+ },
+ "green": {
+  "accent": "us",
+  "file": "green.mp3",
+  "picked_by": "name match (us)"
+ },
+ "guitar": {
+  "accent": "us",
+  "file": "guitar.mp3",
+  "picked_by": "name match (us)"
+ },
+ "hair": {
+  "accent": "us",
+  "file": "hair.mp3",
+  "picked_by": "name match (us)"
+ },
+ "ham": {
+  "accent": "us",
+  "file": "ham.mp3",
+  "picked_by": "name match (us)"
+ },
+ "hamburger": {
+  "accent": "us",
+  "file": "hamburger.mp3",
+  "picked_by": "name match (us)"
+ },
+ "hammer": {
+  "accent": "us",
+  "file": "hammer.mp3",
+  "picked_by": "name match (us)"
+ },
+ "hand": {
+  "accent": "us",
+  "file": "hand.mp3",
+  "picked_by": "name match (us)"
+ },
+ "happy": {
+  "accent": "uk",
+  "file": "happy.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "harmonica": {
+  "accent": "us",
+  "file": "harmonica.mp3",
+  "picked_by": "name match (us)"
+ },
+ "harp": {
+  "accent": "us",
+  "file": "harp.mp3",
+  "picked_by": "name match (us)"
+ },
+ "hat": {
+  "accent": "us",
+  "file": "hat.mp3",
+  "picked_by": "name match (us)"
+ },
+ "head": {
+  "accent": "us",
+  "file": "head.mp3",
+  "picked_by": "name match (us)"
+ },
+ "headphones": {
+  "accent": "uk",
+  "file": "headphones.mp3",
+  "picked_by": "name match (uk)"
+ },
+ "heart": {
+  "accent": "uk",
+  "file": "heart.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "hedgehog": {
+  "accent": "us",
+  "file": "hedgehog.mp3",
+  "picked_by": "name match (us)"
+ },
+ "helicopter": {
+  "accent": "us",
+  "file": "helicopter.mp3",
+  "picked_by": "name match (us)"
+ },
+ "helmet": {
+  "accent": "us",
+  "file": "helmet.mp3",
+  "picked_by": "name match (us)"
+ },
+ "hen": {
+  "accent": "us",
+  "file": "hen.mp3",
+  "picked_by": "name match (us)"
+ },
+ "hexagon": {
+  "accent": "us",
+  "file": "hexagon.mp3",
+  "picked_by": "name match (us)"
+ },
+ "hill": {
+  "accent": "uk",
+  "file": "hill.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "hippo": {
+  "accent": "us",
+  "file": "hippo.mp3",
+  "picked_by": "name match (us)"
+ },
+ "hockey": {
+  "accent": "us",
+  "file": "hockey.mp3",
+  "picked_by": "name match (us)"
+ },
+ "honey": {
+  "accent": "us",
+  "file": "honey.mp3",
+  "picked_by": "name match (us)"
+ },
+ "horse": {
+  "accent": "uk",
+  "file": "horse.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "hospital": {
+  "accent": "us",
+  "file": "hospital.mp3",
+  "picked_by": "name match (us)"
+ },
+ "hot": {
+  "accent": "us",
+  "file": "hot.mp3",
+  "picked_by": "name match (us)"
+ },
+ "house": {
+  "accent": "us",
+  "file": "house.mp3",
+  "picked_by": "name match (us)"
+ },
+ "hungry": {
+  "accent": "us",
+  "file": "hungry.mp3",
+  "picked_by": "name match (us)"
+ },
+ "ice": {
+  "accent": "us",
+  "file": "ice.mp3",
+  "picked_by": "name match (us)"
+ },
+ "iron": {
+  "accent": "us",
+  "file": "iron.mp3",
+  "picked_by": "name match (us)"
+ },
+ "island": {
+  "accent": "us",
+  "file": "island.mp3",
+  "picked_by": "name match (us)"
+ },
+ "jacket": {
+  "accent": "us",
+  "file": "jacket.mp3",
+  "picked_by": "name match (us)"
+ },
+ "jam": {
+  "accent": "us",
+  "file": "jam.mp3",
+  "picked_by": "name match (us)"
+ },
+ "jellyfish": {
+  "accent": "us",
+  "file": "jellyfish.mp3",
+  "picked_by": "name match (us)"
+ },
+ "juice": {
+  "accent": "us",
+  "file": "juice.mp3",
+  "picked_by": "name match (us)"
+ },
+ "jump": {
+  "accent": "us",
+  "file": "jump.mp3",
+  "picked_by": "name match (us)"
+ },
+ "kangaroo": {
+  "accent": "us",
+  "file": "kangaroo.mp3",
+  "picked_by": "name match (us)"
+ },
+ "key": {
+  "accent": "uk",
+  "file": "key.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "keyboard": {
+  "accent": "us",
+  "file": "keyboard.mp3",
+  "picked_by": "name match (us)"
+ },
+ "kitchen": {
+  "accent": "us",
+  "file": "kitchen.mp3",
+  "picked_by": "name match (us)"
+ },
+ "kite": {
+  "accent": "us",
+  "file": "kite.mp3",
+  "picked_by": "name match (us)"
+ },
+ "kiwi": {
+  "accent": "us",
+  "file": "kiwi.mp3",
+  "picked_by": "name match (us)"
+ },
+ "knife": {
+  "accent": "us",
+  "file": "knife.mp3",
+  "picked_by": "name match (us)"
+ },
+ "koala": {
+  "accent": "us",
+  "file": "koala.mp3",
+  "picked_by": "name match (us)"
+ },
+ "ladder": {
+  "accent": "us",
+  "file": "ladder.mp3",
+  "picked_by": "name match (us)"
+ },
+ "ladybug": {
+  "accent": "us",
+  "file": "ladybug.mp3",
+  "picked_by": "name match (us)"
+ },
+ "lake": {
+  "accent": "us",
+  "file": "lake.mp3",
+  "picked_by": "name match (us)"
+ },
+ "lamb": {
+  "accent": "us",
+  "file": "lamb.mp3",
+  "picked_by": "entry link (us)"
+ },
+ "lamp": {
+  "accent": "us",
+  "file": "lamp.mp3",
+  "picked_by": "name match (us)"
+ },
+ "leaf": {
+  "accent": "us",
+  "file": "leaf.mp3",
+  "picked_by": "name match (us)"
+ },
+ "leg": {
+  "accent": "us",
+  "file": "leg.mp3",
+  "picked_by": "name match (us)"
+ },
+ "lemon": {
+  "accent": "uk",
+  "file": "lemon.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "lettuce": {
+  "accent": "us",
+  "file": "lettuce.mp3",
+  "picked_by": "name match (us)"
+ },
+ "library": {
+  "accent": "us",
+  "file": "library.mp3",
+  "picked_by": "name match (us)"
+ },
+ "lightning": {
+  "accent": "us",
+  "file": "lightning.mp3",
+  "picked_by": "name match (us)"
+ },
+ "lion": {
+  "accent": "us",
+  "file": "lion.mp3",
+  "picked_by": "name match (us)"
+ },
+ "lizard": {
+  "accent": "us",
+  "file": "lizard.mp3",
+  "picked_by": "name match (us)"
+ },
+ "lobster": {
+  "accent": "us",
+  "file": "lobster.mp3",
+  "picked_by": "name match (us)"
+ },
+ "lock": {
+  "accent": "uk",
+  "file": "lock.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "lollipop": {
+  "accent": "us",
+  "file": "lollipop.mp3",
+  "picked_by": "name match (us)"
+ },
+ "magnet": {
+  "accent": "uk",
+  "file": "magnet.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "man": {
+  "accent": "us",
+  "file": "man.mp3",
+  "picked_by": "name match (us)"
+ },
+ "mango": {
+  "accent": "us",
+  "file": "mango.mp3",
+  "picked_by": "name match (us)"
+ },
+ "map": {
+  "accent": "us",
+  "file": "map.mp3",
+  "picked_by": "name match (us)"
+ },
+ "marble": {
+  "accent": "us",
+  "file": "marble.mp3",
+  "picked_by": "name match (us)"
+ },
+ "market": {
+  "accent": "us",
+  "file": "market.mp3",
+  "picked_by": "name match (us)"
+ },
+ "medicine": {
+  "accent": "us",
+  "file": "medicine.mp3",
+  "picked_by": "name match (us)"
+ },
+ "melon": {
+  "accent": "uk",
+  "file": "melon.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "microwave": {
+  "accent": "us",
+  "file": "microwave.mp3",
+  "picked_by": "name match (us)"
+ },
+ "milk": {
+  "accent": "uk",
+  "file": "milk.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "mirror": {
+  "accent": "us",
+  "file": "mirror.mp3",
+  "picked_by": "name match (us)"
+ },
+ "mole": {
+  "accent": "us",
+  "file": "mole.mp3",
+  "picked_by": "name match (us)"
+ },
+ "monkey": {
+  "accent": "us",
+  "file": "monkey.mp3",
+  "picked_by": "name match (us)"
+ },
+ "moon": {
+  "accent": "us",
+  "file": "moon.mp3",
+  "picked_by": "name match (us)"
+ },
+ "mosquito": {
+  "accent": "us",
+  "file": "mosquito.mp3",
+  "picked_by": "name match (us)"
+ },
+ "mother": {
+  "accent": "us",
+  "file": "mother.mp3",
+  "picked_by": "name match (us)"
+ },
+ "motorcycle": {
+  "accent": "us",
+  "file": "motorcycle.mp3",
+  "picked_by": "name match (us)"
+ },
+ "mountain": {
+  "accent": "us",
+  "file": "mountain.mp3",
+  "picked_by": "name match (us)"
+ },
+ "mouse": {
+  "accent": "us",
+  "file": "mouse.mp3",
+  "picked_by": "name match (us)"
+ },
+ "mouth": {
+  "accent": "us",
+  "file": "mouth.mp3",
+  "picked_by": "name match (us)"
+ },
+ "museum": {
+  "accent": "us",
+  "file": "museum.mp3",
+  "picked_by": "name match (us)"
+ },
+ "mushroom": {
+  "accent": "us",
+  "file": "mushroom.mp3",
+  "picked_by": "name match (us)"
+ },
+ "nail": {
+  "accent": "us",
+  "file": "nail.mp3",
+  "picked_by": "name match (us)"
+ },
+ "napkin": {
+  "accent": "us",
+  "file": "napkin.mp3",
+  "picked_by": "name match (us)"
+ },
+ "nest": {
+  "accent": "us",
+  "file": "nest.mp3",
+  "picked_by": "name match (us)"
+ },
+ "new": {
+  "accent": "us",
+  "file": "new.mp3",
+  "picked_by": "entry link (us)"
+ },
+ "night": {
+  "accent": "uk",
+  "file": "night.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "nine": {
+  "accent": "uk",
+  "file": "nine.mp3",
+  "picked_by": "name match (uk)"
+ },
+ "noodles": {
+  "accent": "uk",
+  "file": "noodles.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "nose": {
+  "accent": "us",
+  "file": "nose.mp3",
+  "picked_by": "name match (us)"
+ },
+ "notebook": {
+  "accent": "us",
+  "file": "notebook.mp3",
+  "picked_by": "name match (us)"
+ },
+ "nurse": {
+  "accent": "us",
+  "file": "nurse.mp3",
+  "picked_by": "name match (us)"
+ },
+ "old": {
+  "accent": "us",
+  "file": "old.mp3",
+  "picked_by": "name match (us)"
+ },
+ "one": {
+  "accent": "us",
+  "file": "one.mp3",
+  "picked_by": "name match (us)"
+ },
+ "onion": {
+  "accent": "us",
+  "file": "onion.mp3",
+  "picked_by": "name match (us)"
+ },
+ "orange": {
+  "accent": "us",
+  "file": "orange.mp3",
+  "picked_by": "name match (us)"
+ },
+ "ostrich": {
+  "accent": "us",
+  "file": "ostrich.mp3",
+  "picked_by": "name match (us)"
+ },
+ "otter": {
+  "accent": "us",
+  "file": "otter.mp3",
+  "picked_by": "name match (us)"
+ },
+ "oval": {
+  "accent": "us",
+  "file": "oval.mp3",
+  "picked_by": "name match (us)"
+ },
+ "oven": {
+  "accent": "us",
+  "file": "oven.mp3",
+  "picked_by": "name match (us)"
+ },
+ "owl": {
+  "accent": "us",
+  "file": "owl.mp3",
+  "picked_by": "name match (us)"
+ },
+ "pajamas": {
+  "accent": "us",
+  "file": "pajamas.mp3",
+  "picked_by": "name match (us)"
+ },
+ "panda": {
+  "accent": "us",
+  "file": "panda.mp3",
+  "picked_by": "name match (us)"
+ },
+ "pants": {
+  "accent": "us",
+  "file": "pants.mp3",
+  "picked_by": "name match (us)"
+ },
+ "paper": {
+  "accent": "us",
+  "file": "paper.mp3",
+  "picked_by": "name match (us)"
+ },
+ "park": {
+  "accent": "us",
+  "file": "park.mp3",
+  "picked_by": "name match (us)"
+ },
+ "parrot": {
+  "accent": "us",
+  "file": "parrot.mp3",
+  "picked_by": "name match (us)"
+ },
+ "pasta": {
+  "accent": "us",
+  "file": "pasta.mp3",
+  "picked_by": "name match (us)"
+ },
+ "peach": {
+  "accent": "us",
+  "file": "peach.mp3",
+  "picked_by": "name match (us)"
+ },
+ "peacock": {
+  "accent": "us",
+  "file": "peacock.mp3",
+  "picked_by": "name match (us)"
+ },
+ "pear": {
+  "accent": "uk",
+  "file": "pear.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "pen": {
+  "accent": "us",
+  "file": "pen.mp3",
+  "picked_by": "name match (us)"
+ },
+ "pencil": {
+  "accent": "uk",
+  "file": "pencil.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "penguin": {
+  "accent": "us",
+  "file": "penguin.mp3",
+  "picked_by": "name match (us)"
+ },
+ "pentagon": {
+  "accent": "us",
+  "file": "pentagon.mp3",
+  "picked_by": "name match (us)"
+ },
+ "pepper": {
+  "accent": "us",
+  "file": "pepper.mp3",
+  "picked_by": "name match (us)"
+ },
+ "piano": {
+  "accent": "us",
+  "file": "piano.mp3",
+  "picked_by": "name match (us)"
+ },
+ "pig": {
+  "accent": "us",
+  "file": "pig.mp3",
+  "picked_by": "name match (us)"
+ },
+ "pigeon": {
+  "accent": "us",
+  "file": "pigeon.mp3",
+  "picked_by": "name match (us)"
+ },
+ "pillow": {
+  "accent": "us",
+  "file": "pillow.mp3",
+  "picked_by": "name match (us)"
+ },
+ "pilot": {
+  "accent": "uk",
+  "file": "pilot.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "pineapple": {
+  "accent": "us",
+  "file": "pineapple.mp3",
+  "picked_by": "name match (us)"
+ },
+ "pink": {
+  "accent": "us",
+  "file": "pink.mp3",
+  "picked_by": "name match (us)"
+ },
+ "pizza": {
+  "accent": "us",
+  "file": "pizza.mp3",
+  "picked_by": "name match (us)"
+ },
+ "plate": {
+  "accent": "uk",
+  "file": "plate.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "play": {
+  "accent": "us",
+  "file": "play.mp3",
+  "picked_by": "name match (us)"
+ },
+ "pliers": {
+  "accent": "us",
+  "file": "pliers.mp3",
+  "picked_by": "name match (us)"
+ },
+ "plum": {
+  "accent": "us",
+  "file": "plum.mp3",
+  "picked_by": "name match (us)"
+ },
+ "police": {
+  "accent": "uk",
+  "file": "police.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "pony": {
+  "accent": "uk",
+  "file": "pony.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "popcorn": {
+  "accent": "us",
+  "file": "popcorn.mp3",
+  "picked_by": "name match (us)"
+ },
+ "pot": {
+  "accent": "uk",
+  "file": "pot.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "potato": {
+  "accent": "us",
+  "file": "potato.mp3",
+  "picked_by": "name match (us)"
+ },
+ "printer": {
+  "accent": "us",
+  "file": "printer.mp3",
+  "picked_by": "name match (us)"
+ },
+ "pull": {
+  "accent": "us",
+  "file": "pull.mp3",
+  "picked_by": "name match (us)"
+ },
+ "pumpkin": {
+  "accent": "us",
+  "file": "pumpkin.mp3",
+  "picked_by": "name match (us)"
+ },
+ "purple": {
+  "accent": "us",
+  "file": "purple.mp3",
+  "picked_by": "name match (us)"
+ },
+ "push": {
+  "accent": "us",
+  "file": "push.mp3",
+  "picked_by": "name match (us)"
+ },
+ "puzzle": {
+  "accent": "us",
+  "file": "puzzle.mp3",
+  "picked_by": "name match (us)"
+ },
+ "rabbit": {
+  "accent": "uk",
+  "file": "rabbit.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "raccoon": {
+  "accent": "us",
+  "file": "raccoon.mp3",
+  "picked_by": "name match (us)"
+ },
+ "radio": {
+  "accent": "us",
+  "file": "radio.mp3",
+  "picked_by": "name match (us)"
+ },
+ "rain": {
+  "accent": "us",
+  "file": "rain.mp3",
+  "picked_by": "name match (us)"
+ },
+ "rainbow": {
+  "accent": "us",
+  "file": "rainbow.mp3",
+  "picked_by": "name match (us)"
+ },
+ "read": {
+  "accent": "us",
+  "file": "read.mp3",
+  "picked_by": "name match (us)"
+ },
+ "rectangle": {
+  "accent": "us",
+  "file": "rectangle.mp3",
+  "picked_by": "name match (us)"
+ },
+ "red": {
+  "accent": "uk",
+  "file": "red.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "restaurant": {
+  "accent": "us",
+  "file": "restaurant.mp3",
+  "picked_by": "name match (us)"
+ },
+ "rice": {
+  "accent": "us",
+  "file": "rice.mp3",
+  "picked_by": "name match (us)"
+ },
+ "ride": {
+  "accent": "us",
+  "file": "ride.mp3",
+  "picked_by": "name match (us)"
+ },
+ "ring": {
+  "accent": "us",
+  "file": "ring.mp3",
+  "picked_by": "name match (us)"
+ },
+ "river": {
+  "accent": "us",
+  "file": "river.mp3",
+  "picked_by": "name match (us)"
+ },
+ "robot": {
+  "accent": "us",
+  "file": "robot.mp3",
+  "picked_by": "name match (us)"
+ },
+ "rock": {
+  "accent": "uk",
+  "file": "rock.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "rocket": {
+  "accent": "us",
+  "file": "rocket.mp3",
+  "picked_by": "name match (us)"
+ },
+ "roof": {
+  "accent": "us",
+  "file": "roof.mp3",
+  "picked_by": "name match (us)"
+ },
+ "rooster": {
+  "accent": "us",
+  "file": "rooster.mp3",
+  "picked_by": "name match (us)"
+ },
+ "rope": {
+  "accent": "us",
+  "file": "rope.mp3",
+  "picked_by": "name match (us)"
+ },
+ "rose": {
+  "accent": "us",
+  "file": "rose.mp3",
+  "picked_by": "entry link (us)"
+ },
+ "rugby": {
+  "accent": "us",
+  "file": "rugby.mp3",
+  "picked_by": "name match (us)"
+ },
+ "ruler": {
+  "accent": "us",
+  "file": "ruler.mp3",
+  "picked_by": "name match (us)"
+ },
+ "run": {
+  "accent": "us",
+  "file": "run.mp3",
+  "picked_by": "name match (us)"
+ },
+ "sad": {
+  "accent": "us",
+  "file": "sad.mp3",
+  "picked_by": "name match (us)"
+ },
+ "salad": {
+  "accent": "us",
+  "file": "salad.mp3",
+  "picked_by": "name match (us)"
+ },
+ "sand": {
+  "accent": "us",
+  "file": "sand.mp3",
+  "picked_by": "name match (us)"
+ },
+ "sandwich": {
+  "accent": "us",
+  "file": "sandwich.mp3",
+  "picked_by": "name match (us)"
+ },
+ "sausage": {
+  "accent": "us",
+  "file": "sausage.mp3",
+  "picked_by": "name match (us)"
+ },
+ "saw": {
+  "accent": "us",
+  "file": "saw.mp3",
+  "picked_by": "name match (us)"
+ },
+ "saxophone": {
+  "accent": "us",
+  "file": "saxophone.mp3",
+  "picked_by": "name match (us)"
+ },
+ "scared": {
+  "accent": null,
+  "file": null,
+  "picked_by": "no headword recording found"
+ },
+ "scarf": {
+  "accent": "us",
+  "file": "scarf.mp3",
+  "picked_by": "name match (us)"
+ },
+ "school": {
+  "accent": "us",
+  "file": "school.mp3",
+  "picked_by": "name match (us)"
+ },
+ "scissors": {
+  "accent": "us",
+  "file": "scissors.mp3",
+  "picked_by": "name match (us)"
+ },
+ "scooter": {
+  "accent": "us",
+  "file": "scooter.mp3",
+  "picked_by": "name match (us)"
+ },
+ "screw": {
+  "accent": "us",
+  "file": "screw.mp3",
+  "picked_by": "name match (us)"
+ },
+ "sea": {
+  "accent": "uk",
+  "file": "sea.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "seagull": {
+  "accent": "uk",
+  "file": "seagull.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "seahorse": {
+  "accent": "uk",
+  "file": "seahorse.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "seal": {
+  "accent": "uk",
+  "file": "seal.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "seed": {
+  "accent": "uk",
+  "file": "seed.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "seven": {
+  "accent": "us",
+  "file": "seven.mp3",
+  "picked_by": "name match (us)"
+ },
+ "shark": {
+  "accent": "us",
+  "file": "shark.mp3",
+  "picked_by": "name match (us)"
+ },
+ "sheep": {
+  "accent": "us",
+  "file": "sheep.mp3",
+  "picked_by": "name match (us)"
+ },
+ "shell": {
+  "accent": "us",
+  "file": "shell.mp3",
+  "picked_by": "name match (us)"
+ },
+ "shirt": {
+  "accent": "us",
+  "file": "shirt.mp3",
+  "picked_by": "name match (us)"
+ },
+ "shoes": {
+  "accent": "uk",
+  "file": "shoes.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "shop": {
+  "accent": "us",
+  "file": "shop.mp3",
+  "picked_by": "name match (us)"
+ },
+ "shovel": {
+  "accent": "us",
+  "file": "shovel.mp3",
+  "picked_by": "name match (us)"
+ },
+ "shy": {
+  "accent": "us",
+  "file": "shy.mp3",
+  "picked_by": "name match (us)"
+ },
+ "sick": {
+  "accent": "uk",
+  "file": "sick.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "sing": {
+  "accent": "us",
+  "file": "sing.mp3",
+  "picked_by": "name match (us)"
+ },
+ "singer": {
+  "accent": "us",
+  "file": "singer.mp3",
+  "picked_by": "name match (us)"
+ },
+ "sister": {
+  "accent": "us",
+  "file": "sister.mp3",
+  "picked_by": "name match (us)"
+ },
+ "sit": {
+  "accent": "us",
+  "file": "sit.mp3",
+  "picked_by": "name match (us)"
+ },
+ "six": {
+  "accent": "us",
+  "file": "six.mp3",
+  "picked_by": "name match (us)"
+ },
+ "skateboard": {
+  "accent": "us",
+  "file": "skateboard.mp3",
+  "picked_by": "name match (us)"
+ },
+ "skating": {
+  "accent": "uk",
+  "file": "skating.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "skirt": {
+  "accent": "us",
+  "file": "skirt.mp3",
+  "picked_by": "name match (us)"
+ },
+ "sky": {
+  "accent": "us",
+  "file": "sky.mp3",
+  "picked_by": "name match (us)"
+ },
+ "sleep": {
+  "accent": "us",
+  "file": "sleep.mp3",
+  "picked_by": "name match (us)"
+ },
+ "slide": {
+  "accent": "us",
+  "file": "slide.mp3",
+  "picked_by": "name match (us)"
+ },
+ "snail": {
+  "accent": "us",
+  "file": "snail.mp3",
+  "picked_by": "name match (us)"
+ },
+ "snake": {
+  "accent": "us",
+  "file": "snake.mp3",
+  "picked_by": "name match (us)"
+ },
+ "snow": {
+  "accent": "us",
+  "file": "snow.mp3",
+  "picked_by": "name match (us)"
+ },
+ "snowman": {
+  "accent": "us",
+  "file": "snowman.mp3",
+  "picked_by": "name match (us)"
+ },
+ "soap": {
+  "accent": "us",
+  "file": "soap.mp3",
+  "picked_by": "name match (us)"
+ },
+ "socks": {
+  "accent": "uk",
+  "file": "socks.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "sofa": {
+  "accent": "us",
+  "file": "sofa.mp3",
+  "picked_by": "name match (us)"
+ },
+ "soup": {
+  "accent": "us",
+  "file": "soup.mp3",
+  "picked_by": "name match (us)"
+ },
+ "sparrow": {
+  "accent": "us",
+  "file": "sparrow.mp3",
+  "picked_by": "name match (us)"
+ },
+ "sphere": {
+  "accent": "us",
+  "file": "sphere.mp3",
+  "picked_by": "name match (us)"
+ },
+ "spider": {
+  "accent": "us",
+  "file": "spider.mp3",
+  "picked_by": "name match (us)"
+ },
+ "spoon": {
+  "accent": "us",
+  "file": "spoon.mp3",
+  "picked_by": "name match (us)"
+ },
+ "square": {
+  "accent": "us",
+  "file": "square.mp3",
+  "picked_by": "name match (us)"
+ },
+ "squirrel": {
+  "accent": "us",
+  "file": "squirrel.mp3",
+  "picked_by": "name match (us)"
+ },
+ "stairs": {
+  "accent": "uk",
+  "file": "stairs.mp3",
+  "picked_by": "name match (uk)"
+ },
+ "stand": {
+  "accent": "us",
+  "file": "stand.mp3",
+  "picked_by": "name match (us)"
+ },
+ "stapler": {
+  "accent": "us",
+  "file": "stapler.mp3",
+  "picked_by": "name match (us)"
+ },
+ "star": {
+  "accent": "uk",
+  "file": "star.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "starfish": {
+  "accent": "us",
+  "file": "starfish.mp3",
+  "picked_by": "name match (us)"
+ },
+ "stork": {
+  "accent": "us",
+  "file": "stork.mp3",
+  "picked_by": "name match (us)"
+ },
+ "strawberry": {
+  "accent": "us",
+  "file": "strawberry.mp3",
+  "picked_by": "name match (us)"
+ },
+ "sugar": {
+  "accent": "us",
+  "file": "sugar.mp3",
+  "picked_by": "name match (us)"
+ },
+ "suitcase": {
+  "accent": "us",
+  "file": "suitcase.mp3",
+  "picked_by": "name match (us)"
+ },
+ "sun": {
+  "accent": "uk",
+  "file": "sun.mp3",
+  "picked_by": "name match (uk)"
+ },
+ "sunflower": {
+  "accent": "us",
+  "file": "sunflower.mp3",
+  "picked_by": "name match (us)"
+ },
+ "surprised": {
+  "accent": null,
+  "file": null,
+  "picked_by": "no headword recording found"
+ },
+ "swan": {
+  "accent": "us",
+  "file": "swan.mp3",
+  "picked_by": "name match (us)"
+ },
+ "sweater": {
+  "accent": "us",
+  "file": "sweater.mp3",
+  "picked_by": "name match (us)"
+ },
+ "swim": {
+  "accent": "us",
+  "file": "swim.mp3",
+  "picked_by": "name match (us)"
+ },
+ "swing": {
+  "accent": "us",
+  "file": "swing.mp3",
+  "picked_by": "name match (us)"
+ },
+ "table": {
+  "accent": "us",
+  "file": "table.mp3",
+  "picked_by": "name match (us)"
+ },
+ "tall": {
+  "accent": "us",
+  "file": "tall.mp3",
+  "picked_by": "name match (us)"
+ },
+ "tambourine": {
+  "accent": "us",
+  "file": "tambourine.mp3",
+  "picked_by": "name match (us)"
+ },
+ "taxi": {
+  "accent": "us",
+  "file": "taxi.mp3",
+  "picked_by": "name match (us)"
+ },
+ "tea": {
+  "accent": "uk",
+  "file": "tea.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "teacher": {
+  "accent": "us",
+  "file": "teacher.mp3",
+  "picked_by": "name match (us)"
+ },
+ "teddy": {
+  "accent": "us",
+  "file": "teddy.mp3",
+  "picked_by": "name match (us)"
+ },
+ "telephone": {
+  "accent": "us",
+  "file": "telephone.mp3",
+  "picked_by": "name match (us)"
+ },
+ "television": {
+  "accent": "us",
+  "file": "television.mp3",
+  "picked_by": "name match (us)"
+ },
+ "ten": {
+  "accent": "uk",
+  "file": "ten.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "tennis": {
+  "accent": "us",
+  "file": "tennis.mp3",
+  "picked_by": "name match (us)"
+ },
+ "thermometer": {
+  "accent": "us",
+  "file": "thermometer.mp3",
+  "picked_by": "name match (us)"
+ },
+ "thin": {
+  "accent": "us",
+  "file": "thin.mp3",
+  "picked_by": "name match (us)"
+ },
+ "thirsty": {
+  "accent": "us",
+  "file": "thirsty.mp3",
+  "picked_by": "name match (us)"
+ },
+ "three": {
+  "accent": "us",
+  "file": "three.mp3",
+  "picked_by": "name match (us)"
+ },
+ "throw": {
+  "accent": "uk",
+  "file": "throw.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "tie": {
+  "accent": "uk",
+  "file": "tie.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "tiger": {
+  "accent": "us",
+  "file": "tiger.mp3",
+  "picked_by": "name match (us)"
+ },
+ "tired": {
+  "accent": "us",
+  "file": "tired.mp3",
+  "picked_by": "name match (us)"
+ },
+ "toast": {
+  "accent": "us",
+  "file": "toast.mp3",
+  "picked_by": "name match (us)"
+ },
+ "toilet": {
+  "accent": "us",
+  "file": "toilet.mp3",
+  "picked_by": "name match (us)"
+ },
+ "tomato": {
+  "accent": "us",
+  "file": "tomato.mp3",
+  "picked_by": "name match (us)"
+ },
+ "tooth": {
+  "accent": "us",
+  "file": "tooth.mp3",
+  "picked_by": "name match (us)"
+ },
+ "toothbrush": {
+  "accent": "us",
+  "file": "toothbrush.mp3",
+  "picked_by": "name match (us)"
+ },
+ "toothpaste": {
+  "accent": "us",
+  "file": "toothpaste.mp3",
+  "picked_by": "name match (us)"
+ },
+ "towel": {
+  "accent": "us",
+  "file": "towel.mp3",
+  "picked_by": "name match (us)"
+ },
+ "train": {
+  "accent": "us",
+  "file": "train.mp3",
+  "picked_by": "name match (us)"
+ },
+ "tree": {
+  "accent": "us",
+  "file": "tree.mp3",
+  "picked_by": "name match (us)"
+ },
+ "triangle": {
+  "accent": "us",
+  "file": "triangle.mp3",
+  "picked_by": "name match (us)"
+ },
+ "truck": {
+  "accent": "us",
+  "file": "truck.mp3",
+  "picked_by": "name match (us)"
+ },
+ "trumpet": {
+  "accent": "us",
+  "file": "trumpet.mp3",
+  "picked_by": "name match (us)"
+ },
+ "trunk": {
+  "accent": "us",
+  "file": "trunk.mp3",
+  "picked_by": "name match (us)"
+ },
+ "turkey": {
+  "accent": "us",
+  "file": "turkey.mp3",
+  "picked_by": "name match (us)"
+ },
+ "turtle": {
+  "accent": "us",
+  "file": "turtle.mp3",
+  "picked_by": "name match (us)"
+ },
+ "twelve": {
+  "accent": "us",
+  "file": "twelve.mp3",
+  "picked_by": "name match (us)"
+ },
+ "two": {
+  "accent": "uk",
+  "file": "two.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "umbrella": {
+  "accent": "us",
+  "file": "umbrella.mp3",
+  "picked_by": "name match (us)"
+ },
+ "violin": {
+  "accent": "us",
+  "file": "violin.mp3",
+  "picked_by": "name match (us)"
+ },
+ "volleyball": {
+  "accent": "us",
+  "file": "volleyball.mp3",
+  "picked_by": "name match (us)"
+ },
+ "waiter": {
+  "accent": "us",
+  "file": "waiter.mp3",
+  "picked_by": "name match (us)"
+ },
+ "walk": {
+  "accent": "us",
+  "file": "walk.mp3",
+  "picked_by": "name match (us)"
+ },
+ "wardrobe": {
+  "accent": "us",
+  "file": "wardrobe.mp3",
+  "picked_by": "name match (us)"
+ },
+ "wash": {
+  "accent": "us",
+  "file": "wash.mp3",
+  "picked_by": "name match (us)"
+ },
+ "watch": {
+  "accent": "us",
+  "file": "watch.mp3",
+  "picked_by": "name match (us)"
+ },
+ "water": {
+  "accent": "us",
+  "file": "water.mp3",
+  "picked_by": "name match (us)"
+ },
+ "waterfall": {
+  "accent": "us",
+  "file": "waterfall.mp3",
+  "picked_by": "name match (us)"
+ },
+ "watermelon": {
+  "accent": "us",
+  "file": "watermelon.mp3",
+  "picked_by": "name match (us)"
+ },
+ "wet": {
+  "accent": "us",
+  "file": "wet.mp3",
+  "picked_by": "name match (us)"
+ },
+ "whale": {
+  "accent": "us",
+  "file": "whale.mp3",
+  "picked_by": "name match (us)"
+ },
+ "wheel": {
+  "accent": "uk",
+  "file": "wheel.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "white": {
+  "accent": "us",
+  "file": "white.mp3",
+  "picked_by": "name match (us)"
+ },
+ "wind": {
+  "accent": "us",
+  "file": "wind.mp3",
+  "picked_by": "name match (us)"
+ },
+ "window": {
+  "accent": "us",
+  "file": "window.mp3",
+  "picked_by": "name match (us)"
+ },
+ "wolf": {
+  "accent": "us",
+  "file": "wolf.mp3",
+  "picked_by": "name match (us)"
+ },
+ "woman": {
+  "accent": "us",
+  "file": "woman.mp3",
+  "picked_by": "name match (us)"
+ },
+ "worm": {
+  "accent": "us",
+  "file": "worm.mp3",
+  "picked_by": "name match (us)"
+ },
+ "wrench": {
+  "accent": "us",
+  "file": "wrench.mp3",
+  "picked_by": "name match (us)"
+ },
+ "write": {
+  "accent": "uk",
+  "file": "write.mp3",
+  "picked_by": "entry link (uk)"
+ },
+ "xylophone": {
+  "accent": "us",
+  "file": "xylophone.mp3",
+  "picked_by": "name match (us)"
+ },
+ "yellow": {
+  "accent": "us",
+  "file": "yellow.mp3",
+  "picked_by": "name match (us)"
+ },
+ "yogurt": {
+  "accent": "us",
+  "file": "yogurt.mp3",
+  "picked_by": "name match (us)"
+ },
+ "zebra": {
+  "accent": "us",
+  "file": "zebra.mp3",
+  "picked_by": "name match (us)"
+ },
+ "zoo": {
+  "accent": "us",
+  "file": "zoo.mp3",
+  "picked_by": "name match (us)"
+ }
+}

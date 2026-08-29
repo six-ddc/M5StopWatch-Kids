@@ -4,9 +4,11 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
+#include <apps/common/pinyin_ime/ime_view.h>
 #include <hal/hal.h>
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include "../engine/hz_anim.h"
 #include "../engine/hz_compose.h"
 #include "../engine/hz_data.h"
@@ -14,15 +16,17 @@
 namespace view {
 
 // Grid of characters for one lesson. Cells are rendered with the stroke engine
-// into A8 coverage images rather than a large font, which keeps 1037 glyphs out
-// of flash.
+// into A8 coverage images rather than a large font, which keeps the whole
+// character set out of flash.
 class BrowsePage {
 public:
     using SelectCallback = std::function<void(uint16_t order)>;
+    using SearchCallback = std::function<void()>;
 
     ~BrowsePage();
 
-    bool create(lv_obj_t* parent, const hz::DataSource* source, SelectCallback on_select);
+    bool create(lv_obj_t* parent, const hz::DataSource* source, SelectCallback on_select,
+                SearchCallback on_search = nullptr);
     void destroy();
 
     void setHidden(bool hidden);
@@ -37,8 +41,9 @@ public:
         return _lesson;
     }
 
-    // Invoked from the LVGL click handler; not part of the page's own API.
+    // Invoked from the LVGL click handlers; not part of the page's own API.
     void handleCellClicked(uint8_t index);
+    void handleSearchClicked();
 
 private:
     static constexpr uint8_t kCells = 9;
@@ -49,6 +54,7 @@ private:
 
     const hz::DataSource* _src = nullptr;
     SelectCallback _on_select;
+    SearchCallback _on_search;
 
     lv_obj_t* _root   = nullptr;
     lv_obj_t* _title  = nullptr;
@@ -58,8 +64,8 @@ private:
         lv_obj_t* image = nullptr;
         uint8_t* buffer = nullptr;
         lv_image_dsc_t dsc{};
-        uint16_t order  = 0;
-        bool occupied   = false;
+        uint16_t order = 0;
+        bool occupied  = false;
     };
     Cell _cells[kCells];
 
@@ -81,7 +87,11 @@ public:
     void destroy();
 
     void setHidden(bool hidden);
-    bool showCharacter(uint16_t order);
+    // `reading` (optional) overrides the displayed pinyin with the reading
+    // the character was reached under (heteronyms searched by a secondary
+    // reading should show that reading, not the primary). next()/previous()
+    // clear the override.
+    bool showCharacter(uint16_t order, const char* reading = nullptr);
     void next();
     void previous();
     void replay();
@@ -101,7 +111,6 @@ public:
     // One-shot flag set when a character finishes. Consumed outside the LVGL
     // lock so the caller can play a sound without stalling the UI thread.
     bool takeCharCompleted();
-
 
 private:
     bool allocate();
@@ -128,9 +137,52 @@ private:
     hz::Compositor _comp;
     hz::Animator _anim;
 
-    uint16_t _order       = 0;
-    bool _ready           = false;
-    bool _char_completed  = false;
+    uint16_t _order           = 0;
+    bool _ready               = false;
+    bool _char_completed      = false;
+    char _pinyin_override[16] = {};
+};
+
+// Pinyin lookup, the app's landing page: the reusable T9 widget wired to the
+// stroke engine. The page itself is thin glue -- it owns the GlyphPainter
+// that renders candidates with hz::Compositor, wires the horizontal-swipe
+// gesture that leads to the textbook browse mode, and forwards everything
+// else to pime::ImeView.
+class SearchPage {
+public:
+    using BrowseCallback = std::function<void()>;
+
+    // Defined in search.cpp, where HanziPainter is a complete type (the
+    // implicit versions would instantiate unique_ptr's deleter here).
+    SearchPage();
+    ~SearchPage();
+
+    bool create(lv_obj_t* parent, const hz::DataSource* source, const pime::CandidateSource* engine,
+                BrowseCallback on_browse = nullptr);
+    void destroy();
+
+    // Invoked from the LVGL click handler; not part of the page's own API.
+    void handleBrowseClicked();
+    void setHidden(bool hidden);
+
+    // Physical-key routing; call with the LVGL lock held.
+    void nextCandidatePage();
+    void previousCandidatePage();
+    // One-shot: a candidate was tapped; `order` is its teaching-order index
+    // and `reading` (optional) the toned reading it was picked under.
+    bool takePick(uint16_t& order, char* reading = nullptr, size_t cap = 0);
+
+    // The host sim drives key presses through this.
+    pime::ImeView& ime()
+    {
+        return _ime;
+    }
+
+private:
+    class HanziPainter;
+    std::unique_ptr<HanziPainter> _painter;
+    pime::ImeView _ime;
+    BrowseCallback _on_browse;
 };
 
 }  // namespace view

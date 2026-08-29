@@ -32,6 +32,7 @@ SS = 8  # supersampling for the alpha edge; the panel is round, the pixels are n
 # (sim, screenshot basename, output name). The hanzi sim writes into the
 # working directory; the other two take --out.
 SHOTS = [
+    ("hanzi", "search_01", "hanzi-search.png"),
     ("hanzi", "browse", "hanzi-browse.png"),
     ("hanzi", "learn_06", "hanzi-learn.png"),
     ("math", "map_fresh", "math-map.png"),

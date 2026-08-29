@@ -156,9 +156,8 @@ int main(int argc, char** argv)
     }
 
     std::vector<uint8_t> blob;
-    if (!readFile(root + "/hanzi_data.bin", blob)) {
-        std::fprintf(stderr, "cannot read %s/hanzi_data.bin -- run the pipeline first\n",
-                     root.c_str());
+    if (!readFile(HANZI_BLOB_PATH, blob)) {
+        std::fprintf(stderr, "cannot read %s -- run the pipeline first\n", HANZI_BLOB_PATH);
         return 2;
     }
 
@@ -289,7 +288,11 @@ int main(int argc, char** argv)
     std::printf("worst mean diff=%.3f  max arena=%zu B  max outline points=%zu\n",
                 worst_mean, max_arena, max_outline);
 
-    if (decode_failed != 0 || failed != 0) {
+    if (decode_failed != 0 || failed != 0 || missing_golden != 0) {
+        if (missing_golden != 0) {
+            std::printf("missing golden references -- re-run: "
+                        "python3 tools/hanzi_pipeline/build_hanzi_data.py\n");
+        }
         std::printf("RESULT: FAIL\n");
         return 1;
     }

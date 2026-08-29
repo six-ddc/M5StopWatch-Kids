@@ -3,7 +3,8 @@
  *
  * Stroke data derived from Make Me a Hanzi via hanzi-writer-data,
  * whose outlines come from the Arphic PL fonts under the Arphic
- * Public License. Character lists and pinyin from shukong-app.
+ * Public License. Character lists and pinyin from shukong-app
+ * and the level-1 通用规范汉字表 (see tools/hanzi_pipeline/charlist.py).
  */
 #pragma once
 
@@ -11,8 +12,12 @@
 extern "C" {
 #endif
 
-extern const unsigned char hanzi_data_blob[];
-extern const unsigned int hanzi_data_blob_size;
+/* Provided by the linker: main/CMakeLists.txt embeds
+ * assets/hanzi/hanzi_data.bin via EMBED_FILES. */
+extern const unsigned char hanzi_data_blob[] asm("_binary_hanzi_data_bin_start");
+extern const unsigned char hanzi_data_blob_tail[] asm("_binary_hanzi_data_bin_end");
+
+#define hanzi_data_blob_size ((unsigned int)(hanzi_data_blob_tail - hanzi_data_blob))
 
 #ifdef __cplusplus
 }

@@ -1,19 +1,23 @@
 # AppHanzi — 汉字笔顺
 
-给小朋友的识字笔顺 App：在田字格里逐笔写出一个字，配拼音，按小学语文**写字表**的课文顺序编排。
+给小朋友的识字笔顺 App：在田字格里逐笔写出一个字，配拼音。入口是**拼音查字**（孩子通常"知道音、不知道写法"），教材课文浏览是第二入口。
 
-- 字库：一年级上册 ~ 三年级上册写字表累计 **1037 字 / 132 课**，平均 8.0 画
-- 渲染：自绘扫描线光栅化 + 圆头笔刷沿骨架中线推进，**不依赖 ThorVG / 矢量图形**
-- 体积：笔顺数据 611 KB + 中文子集字体 ~100 KB + 图标 78 KB，全部编进 `.rodata`
+- 字库：教材字（一上~三上识字表+写字表）**1847 字 / 181 课** + 笔画数据全集补齐到 **9562 字**（收录条件：有笔画数据 **且** 有可用拼音）。扩充字不属于任何课，只能通过拼音检索到达——order 表里教材字按教学序在前、扩充字按字频降序在后，"候选按常用度排序"就是 order 升序，不需要额外的权重表。扩充段内部再分两层：《通用规范汉字表》内的简体字在前，表外的繁体/异体/生僻字整体垫底——wordfreq 会把繁体折算到简体词频上，不分层的话"謹"会紧挨着"谨"出现在每个候选列表里
+- 检索：T9 九宫格拼音输入（`main/apps/common/pinyin_ime/`，可复用组件），两层候选——数字串 → 拼音解释 chips（426 → hao/gao/han/gan，按"该音下最常用字"加权）→ 该拼音下的汉字候选（整音节命中在前、前缀展开在后）。全字库实测一个数字串最多 6 个拼音解释，chips 行 3+"…" 点击轮换一次就能看全
+- 渲染：自绘扫描线光栅化 + 圆头笔刷沿骨架中线推进，**不依赖 ThorVG / 矢量图形**；候选字缩略图直接用笔顺引擎画（A8 + recolor），9562 个字形不进字体
+- 体积：笔顺数据 7.9 MB 走 `EMBED_FILES` 链接（C 数组形式约 47 MB，GCC 每次要嚼几分钟）+ 中文子集字体 ~1.4 MB + 图标 78 KB
 
 ## 操作
 
-| | 浏览页（课文字格） | 学习页（田字格） |
-|---|---|---|
-| A 键 | 上一页/上一课 | 上一个字 |
-| B 键 | 下一页/下一课 | 下一个字 |
-| 点击 | 选字 → 学习页 | 重播动画 |
-| A+B 长按 | 退出 App | 返回浏览页（再按退出）|
+| | 搜索页（默认落地） | 浏览页（课文字格） | 学习页（田字格） |
+|---|---|---|---|
+| A 键 | 候选上一页 | 上一页/上一课 | 教材进入：上一个字；搜索进入：返回搜索 |
+| B 键 | 候选下一页 | 下一页/下一课 | 教材进入：下一个字；搜索进入：重写一遍 |
+| 点击 | 键盘输入 / 选拼音 / 选字 → 学习页 | 选字 → 学习页 | 重播动画 |
+| 横滑 | → 浏览页 | → 搜索页 | — |
+| A+B 长按 | 退出 App | 返回搜索页 | 返回来处（搜索或浏览，再按退出）|
+
+搜索交互为 5-8 岁设计：每按一键即时出字；无效按键当场拒绝（震动 + 键描边闪红），孩子永远不会进入"没有结果"的状态；多音字全部展开进索引（好 = hǎo/hào 都能查到），候选注音显示与当前拼音匹配的那个读音。从学习页返回时搜索输入原样保留（孩子常连看同音字）。
 
 进度（最后学到的字）存在 NVS 命名空间 `hanzi` 下。
 
@@ -26,7 +30,18 @@ engine/       与 LVGL、ESP-IDF 无关，可在主机编译和逐像素验证
   hz_anim     播放时序状态机（纯时间驱动，不碰像素）
   hz_compose  图层合成：base / stroke / reveal 三个覆盖度平面 + RGB565 输出
 view/         LVGL 页面，PSRAM 缓冲的所有权在这一层
+  search      SearchPage：把可复用的 T9 组件接上笔顺引擎的薄胶水层
+
+../common/pinyin_ime/   可复用 T9 拼音输入组件（不含任何 hz 代码）
+  py_normalize   带调 UTF-8 → 无调 ASCII，表驱动，纯逻辑
+  t9_engine      两层候选：interpretations(数字串)→拼音解释、query(拼音)→字；
+                 从通用 (音节, id) 表构建，id 升序即权重降序，纯逻辑
+  ime_view       LVGL 键盘+拼音 chips+候选条；只认 CandidateSource（查询）与
+                 GlyphPainter（往 A8 buffer 画候选 + 注音）两个抽象，别的 App
+                 换个 painter 就能复用
 ```
+
+T9 索引在 `AppHanzi::onOpen()` 运行期构建（遍历 `pinyinAt()`，多读音按空格切分归一化，11593 条读音实测 203 ms、索引 ~40 KB），blob 格式因此零改动。拼音字段存全部读音（"hǎo hào"，首个为主读音），学习页默认显示主读音；从搜索选中的候选会把点选时命中的读音透传过来显示。
 
 合成规则：可见墨迹 = `max(base, min(stroke, reveal))`。三层都是同一种墨色，用 `max` 而非 alpha-over 合并，避免抗锯齿边缘在图层重叠处被加深。
 
@@ -43,9 +58,15 @@ view/         LVGL 页面，PSRAM 缓冲的所有权在这一层
 ```bash
 python3 tools/hanzi_pipeline/build_hanzi_data.py     # 生成笔顺数据 + 字体字符集 + golden 参考图
 python3 tools/hanzi_pipeline/make_icon.py            # 生成 launcher 图标
+python3 tools/hanzi_pipeline/make_char_table.py --source characters.csv
+                                                     # 仅重生成 charlist.py 时用（见下）
 ```
 
-管线做完了所有规范化，固件侧不重复劳动：y 轴翻转（源数据 y 向上、基线 900）、坐标量化到 512 系、每笔预算笔刷半径、填充规则一致性校验、体积门禁（>700 KB 构建失败）。
+管线做完了所有规范化，固件侧不重复劳动：y 轴翻转（源数据 y 向上、基线 900）、坐标量化到 512 系、每笔预算笔刷半径、填充规则一致性校验、体积门禁（>8192 KiB 构建失败）、拼音字符 ⊆ 字体子集断言、多音字哨兵断言（"好"必须带两个读音）。
+
+字列表 = 教材字（教学序，带课程）+ `charlist.py` 里教材之外的字（按字频降序追加、不属于任何课）。`charlist.py` 是**进库的数据文件**（笔画数据全集 9562 字 + 多读音 + 分层频序），由 `make_char_table.py` 一次性生成、人工复核 diff 后入库；日常构建不需要它的依赖（pypinyin / wordfreq）。入库条件是"有笔画 且 有可用拼音"——全集里只有 龶龹龺 三个部件字因无读音出局，部首区符号（U+2E80..）也被剔除。教材字缺笔顺数据会硬失败，扩充字缺失只 skip 并打印清单。
+
+blob 产物是 `main/assets/hanzi/hanzi_data.bin`，经 `EMBED_FILES` 链接进固件（主机测试用 `HANZI_BLOB_PATH` 宏指向同一份，与固件零漂移）。
 
 字体子集由管线导出的字符集生成（**不要手工维护字符集**，漏字会静默显示成 □）：
 
@@ -57,20 +78,23 @@ npx lv_font_conv --font LXGWWenKai-Regular.ttf --size 24 --bpp 4 --format lvgl \
 
 ## 主机验证
 
-引擎不依赖设备，改动后应先在主机跑完这两个：
+引擎不依赖设备，改动后应先在主机跑完这四个：
 
 ```bash
 cmake -S tools/hanzi_host_test -B build_host && cmake --build build_host
-./build_host/hanzi_host_test                   # 1037 字逐字与 golden 比对
-./build_host/anim_host_test --char 6211        # 动画 + 增量绘制 vs 全量重绘的残影检测
+./build_host/hanzi_host_test                   # 9562 字逐字与 golden 比对（missing 也算失败）
+./build_host/hanzi_logic_test                  # T9 引擎不变量：round-trip + 差分参考实现
+./build_host/anim_host_test                    # 默认字 + 笔画数/轮廓点极值字的残影检测
+./build_host/hanzi_sim --out /tmp/hzsim        # 真 view 代码截图 + r=233 圆外像素断言
 ```
 
-`anim_host_test` 每帧都会把增量绘制的结果与一次全量重绘做逐像素比对，必须完全一致——脏区算错、图层残留这类 bug 会在这里当场暴露。
+`anim_host_test` 每帧都会把增量绘制的结果与一次全量重绘做逐像素比对，必须完全一致——脏区算错、图层残留这类 bug 会在这里当场暴露。`hanzi_logic_test` 里最值钱的两条：9562 字的每个读音经"归一化→数字串→选中解释→查询"必须找回自己；引擎输出与测试内置的朴素参考实现逐项一致。
 
 ## 数据来源
 
 - **笔顺数据**：[hanzi-writer-data](https://github.com/chanind/hanzi-writer) → 派生自 [Make Me a Hanzi](https://github.com/skishore/makemeahanzi)，其字形数据来自 **Arphic PL 字体**，依 **Arphic Public License** 授权，要求保留本声明。
-- **字表与拼音**：[vipzhicheng/shukong-app](https://github.com/vipzhicheng/shukong-app) 整理的小学语文教材数据（MIT）。
+- **教材字表与拼音**：[vipzhicheng/shukong-app](https://github.com/vipzhicheng/shukong-app) 整理的小学语文教材数据（MIT）。
+- **一级字表与读音**：[jaywcjlove/table-of-general-standard-chinese-characters](https://github.com/jaywcjlove/table-of-general-standard-chinese-characters)（MIT）的《通用规范汉字表》数字化数据；读音常用度排序来自 [pypinyin](https://github.com/mozillazg/python-pinyin)（MIT），字频排名来自 [wordfreq](https://github.com/rspeer/wordfreq)（MIT）——三者只在重生成 `charlist.py` 时用到。
 - **界面字体**：[霞鹜文楷 LXGW WenKai](https://github.com/lxgw/LxgwWenKai)，**SIL Open Font License 1.1**。选楷体是因为小学课本用楷体，且与笔顺数据的字形风格一致。
 
 前两项在代码里有默认端点，直接跑就能拉；要换源就覆盖环境变量：
@@ -83,4 +107,4 @@ cmake -S tools/hanzi_host_test -B build_host && cmake --build build_host
 
 笔顺 JSON 要有一个 `strokes` 数组，装 SVG 路径，坐标在 1024 单位的框里、基线 y=900；字表 JSON 每课要有 `recognition`（识字表）和 `writing`（写字表）两个字段，各自带逐字拼音。满足这两个形状的数据源都能直接接。
 
-`.cache/` 暖起来之后就都不需要了。上述声明同时保留在生成物 `main/assets/hanzi/hanzi_data.c` 的文件头中。
+`.cache/` 暖起来之后就都不需要了。上述声明同时保留在生成物 `main/assets/hanzi/hanzi_data.h` 的文件头中。

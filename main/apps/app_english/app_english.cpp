@@ -39,7 +39,12 @@ constexpr const char* kNvsBest      = "best";
 AppEnglish::AppEnglish()
 {
     setAppInfo().name = "英语";
+#if !KIDS_STANDALONE
+    // Only a build with a launcher has anything to draw the icon on;
+    // a single-app build leaves the image out of the firmware entirely,
+    // so referencing it here would not even link.
     setAppInfo().icon = (void*)&icon_english;
+#endif
 }
 
 void AppEnglish::onCreate()
@@ -466,8 +471,12 @@ void AppEnglish::onRunning()
     switch (_key_manager->update()) {
         case input::KeyEvent::GoHome:
             if (_page == Page::Units) {
+#if !KIDS_STANDALONE
                 // The launcher reopens itself once this app reaches Sleeping.
+                // A single-app build has no launcher, so the press does
+                // nothing rather than leaving a blank screen.
                 close();
+#endif
             } else {
                 // One step back out to the unit picker first, so a mis-hold
                 // does not throw away a round in progress without warning.

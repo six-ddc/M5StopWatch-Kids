@@ -1,0 +1,39 @@
+menu "Kids firmware"
+
+    comment "A single enabled app builds a single-purpose device: the"
+    comment "launcher is dropped and that app opens straight from boot."
+    comment "The default is hanzi only; turn the others on as needed."
+
+    config KIDS_APP_HANZI
+        bool "Build the hanzi app (stroke order + pinyin search)"
+        default y
+        help
+            Stroke-order animation plus T9 pinyin lookup over the full
+            stroke-data character set (~9.5k characters). Costs about 7.9 MB
+            of flash for the stroke blob plus the fonts, and is the only app
+            that allocates significant PSRAM (canvas, candidate thumbnails
+            and the pinyin index, roughly 700 KB).
+
+    config KIDS_APP_MATH
+        bool "Build the math app (arithmetic)"
+        default n
+        help
+            Two-choice arithmetic within 100. The cheapest of the three:
+            only the two digit fonts and its icon, well under 300 KB.
+
+    config KIDS_APP_ENGLISH
+        bool "Build the english app (picture and sound words)"
+        default n
+        help
+            Picture-and-sound vocabulary. The word blob is 4.1 MB at 24
+            units and 7.0 MB at all 40. Control that with
+            tools/english_pipeline/build_english_data.py --pack-units N,
+            which is a separate axis from this switch. All three apps
+            together still fit the 15.9 MB partition.
+
+    comment "Partition layout is picked under Partition Table, not here:"
+    comment "partitions.csv gives all the flash to the app, while"
+    comment "partitions-with-storage.csv keeps a 4.9 MB FAT partition."
+    comment "The firmware detects which one it booted with at runtime."
+
+endmenu

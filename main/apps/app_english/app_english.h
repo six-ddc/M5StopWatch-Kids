@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
+#include <apps/build_config.h>
 #include <apps/common/key_manager/key_manager.h>
 #include <mooncake.h>
 #include <cstdint>

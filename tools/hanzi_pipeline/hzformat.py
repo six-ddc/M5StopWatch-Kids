@@ -49,9 +49,9 @@ Layout (little-endian throughout):
     else int8 dy
   Measured escape rate at coord_scale=512 is ~1.1% of points.
 
-Every stroke in the source data is a single closed subpath (verified across all
-8336 strokes of the 1037-character set), so the leading M and trailing Z are
-implicit and no subpath table is needed.
+Every stroke in the source data is a single closed subpath (the builder
+verifies this for the whole packed set and skips violators), so the leading M
+and trailing Z are implicit and no subpath table is needed.
 
 ALIGNMENT: stroke payloads are byte-packed, so the int16 coordinates land on
 arbitrary addresses. Xtensa raises LoadStoreAlignmentError on unaligned 32-bit

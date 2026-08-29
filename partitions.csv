@@ -1,6 +1,15 @@
 # ESP-IDF Partition Table
+#
+# No OTA (the device never goes online), so the app gets everything that is
+# left after nvs and phy_init. 0xFE0000 = 15.875 MB of the 16 MB flash.
+#
+# The FAT `storage` partition this project used to reserve was never read or
+# written by anything, so its 4.9 MB went here. If you do need a filesystem,
+# switch to partitions-with-storage.csv under
+# `idf.py menuconfig` -> Partition Table -> Custom partition CSV file.
+# hal_fs.cpp detects at runtime whether the partition exists.
+#
 # Name,   Type, SubType, Offset,   Size
 nvs,      data, nvs,     0x9000,   0x6000
 phy_init, data, phy,     0xf000,   0x1000
-factory,  app,  factory, 0x20000,  0xB00000
-storage,  data, fat,     ,         0x4E0000
+factory,  app,  factory, 0x20000,  0xFE0000

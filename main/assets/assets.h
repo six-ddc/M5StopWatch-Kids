@@ -8,6 +8,8 @@
 
 LV_FONT_DECLARE(lv_font_hanzi_ui_24);
 LV_FONT_DECLARE(lv_font_hanzi_pinyin_44);
+// Toneless lowercase latin + '.', for the T9 keyboard's pinyin chips.
+LV_FONT_DECLARE(lv_font_pinyin_latin_32);
 // Digits only, for the arithmetic game: the equation and the answer cards.
 LV_FONT_DECLARE(lv_font_digit_96);
 LV_FONT_DECLARE(lv_font_digit_64);

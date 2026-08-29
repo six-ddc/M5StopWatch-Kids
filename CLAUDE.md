@@ -16,7 +16,27 @@ idf.py -p <PORT> flash monitor
 
 需要 ESP-IDF v5.5（`sdkconfig.defaults` 由 5.5.4 生成）。
 
-**新增或删除源文件后必须先 `idf.py reconfigure`**——`main/CMakeLists.txt` 用 `file(GLOB_RECURSE)` 收 `apps/` `assets/` `hal/` 下的源文件，不重新配置感知不到文件增删。
+**新增或删除源文件后必须先 `idf.py reconfigure`**——`main/CMakeLists.txt` 用 `file(GLOB_RECURSE)` 收源文件，不重新配置感知不到文件增删。**改 menuconfig 里的 App 开关同样要 reconfigure**。
+
+### ⚠️ CMakeLists 已经不是一把梭 GLOB 了
+
+`main/CMakeLists.txt` **按 App 分组**收集源文件，好让 menuconfig 里关掉一个 App 时它的代码和数据一起消失：
+
+- 无条件进：`apps/common/*`、`hal/*`、`assets/fonts/lv_font_hanzi_ui_24.c`（launcher 和三个 App 都用它写字）
+- `KIDS_APP_COUNT > 1` 才进：`apps/app_launcher/*` 和两个 indicator 图标
+- 各 App 的 `apps/app_<x>/*` + 它独占的字体 / 图标，在各自的 `if(CONFIG_KIDS_APP_<X>)` 里
+- `lv_font_hanzi_pinyin_44.c` 在 `if(HANZI OR ENGLISH)` 里——识字画拼音、英语画中文释义，两边都要
+- blob 走 `EMBED_FILES`（`MY_EMBEDS`），不是编译成 C 数组
+
+**新增 App、字体、图标或 blob，必须同时加进对应的条件分支。**没有兜底的 GLOB 捞剩下的文件——漏加的文件不会报错，只是静默不参与编译，然后在链接期变成一个莫名其妙的 undefined reference，或者更糟：运行时才发现某个资源没进固件。
+
+`main/apps/build_config.h` 把 Kconfig 开关归一成 `KIDS_APP_COUNT` / `KIDS_STANDALONE`。要用 `KIDS_STANDALONE` 的 .cpp **必须能看到这个头**（三个 App 的 .h 都 include 了）——宏没定义时 `#if !KIDS_STANDALONE` 会取 `!0` 恒真，单 App 构建下那段代码照样编进去，而且不报任何错。
+
+### 单 App 构建
+
+只勾一个 App 时不装 launcher，`app_main` 直接 `installApp` + `openApp`。相应地三个 App 的 `GoHome` 分支里那句 `close()` 被 `#if !KIDS_STANDALONE` 包住了：没有 launcher 会重开它，关掉唯一的 App 只会剩一块黑屏。加新 App 时别忘了这一处。
+
+一个 App 都不选会 `message(FATAL_ERROR)`。注意这个断言要带 `AND NOT CMAKE_BUILD_EARLY_EXPANSION`——组件 CMakeLists 会被求值两次，早期展开那次所有 `CONFIG_*` 都还没定义，不加保护会在正常配置时误报。
 
 换 ESP-IDF 检出会让 CMake 缓存的源路径失效，只能 `rm -rf build` 全量重建（约 15~25 分钟，超过一般 shell 超时，后台跑再轮询日志）。
 
@@ -27,9 +47,10 @@ idf.py -p <PORT> flash monitor
 ```bash
 # 识字
 cmake -S tools/hanzi_host_test -B build_host && cmake --build build_host
-./build_host/hanzi_host_test            # 1847 字逐字与 golden 逐像素比对
-./build_host/anim_host_test --char 6211 # 每帧比对增量绘制 vs 全量重绘，抓脏区/残影
-./build_host/hanzi_sim
+./build_host/hanzi_host_test            # 9562 字逐字与 golden 逐像素比对（missing 也算失败）
+./build_host/hanzi_logic_test           # T9 拼音引擎不变量：逐读音 round-trip + 朴素参考实现差分
+./build_host/anim_host_test             # 增量绘制 vs 全量重绘逐帧比对；默认字 + 笔画/轮廓点极值字
+./build_host/hanzi_sim --out /tmp/hzsim
 
 # 算术
 cmake -S tools/math_host_test -B build_math && cmake --build build_math
@@ -48,7 +69,7 @@ cmake -S tools/english_host_test -B build_english && cmake --build build_english
 
 ### App 生命周期
 
-`main.cpp` 里 `installApp` 的顺序**就是** launcher 图标从左到右的顺序。App 都是 `mooncake::AppAbility` 子类，实现 `onCreate/onOpen/onRunning/onClose`。`AppLauncher` 继承 `AppLauncherBase`，交接由它负责——它在被选中的 App 打开前关掉自己、在那个 App 睡下后重开，所以**一个 App 想回首页只要 `close()` 自己**。
+`main.cpp` 里 `installApp` 的顺序**就是** launcher 图标从左到右的顺序。App 都是 `mooncake::AppAbility` 子类，实现 `onCreate/onOpen/onRunning/onClose`。`AppLauncher` 继承 `AppLauncherBase`，交接由它负责——它在被选中的 App 打开前关掉自己、在那个 App 睡下后重开，所以**一个 App 想回首页只要 `close()` 自己**。（**单 App 构建里没有 launcher**，这条不成立，见上面「单 App 构建」。）
 
 ### 每个 App 三层，边界是硬的
 
@@ -102,6 +123,8 @@ app_*.cpp                   状态机 · 时钟 · 音频 · NVS · 反馈节奏
 
 ```bash
 python3 tools/hanzi_pipeline/build_hanzi_data.py                 # 笔顺数据 + 字体字符集 + golden 参考图
+python3 tools/hanzi_pipeline/make_char_table.py --source <csv>   # 仅重生成 charlist.py（全量字表+读音+字频）时用，
+                                                                 # 依赖 pypinyin/wordfreq，日常构建不需要
 python3 tools/english_pipeline/build_english_data.py             # ENG1 blob（图片 + 音频）
 python3 tools/english_pipeline/build_english_data.py --pack-units N   # 只打进前 N 组，控制固件体积
 python3 tools/*_pipeline/make_icon*.py                           # launcher 图标
@@ -113,7 +136,13 @@ python3 tools/*_pipeline/make_icon*.py                           # launcher 图�
 
 ## 分区与体积
 
-不联网，没有 OTA 双分区：`factory` 11 MB（当前用掉 7.0 MB，英语打包 24 组），`storage` 4.9 MB FAT 预留。加内容前先看 `main/apps/app_english/README.md` 里的打包档位表。
+不联网，没有 OTA 双分区。默认 `partitions.csv` 把 flash 全给 `factory`（15.9 MB）；`partitions-with-storage.csv` 是旧布局（`factory` 11 MB + `storage` 4.9 MB FAT），换布局只改 `CONFIG_PARTITION_TABLE_CUSTOM_FILENAME`，**代码不用动**——`hal_fs.cpp` 用 `esp_partition_find_first` 探测 storage 在不在，不在就跳过挂载。
+
+那 4.9 MB 之前是白占的：`wear_levelling_init()` 把 FAT 挂上，但全仓库没有一行读写 `/spiflash`。要开始用文件系统时记得换回带 storage 的布局。
+
+体积的大头是数据，不是代码：`hanzi_data.bin` 7.86 MB、`english_data.bin` 4.11 MB（24 组）/ 7.03 MB（40 组全量）。两条正交的裁剪路径——menuconfig 关掉整个 App，或者给英语管线加 `--pack-units N`。加内容前先看 `main/apps/app_english/README.md` 里的打包档位表。
+
+**PSRAM 不是瓶颈**，别往那个方向优化：只有识字分配 PSRAM（canvas 300×300 RGB565 ≈ 176 KB + arena 16 KB + 候选缩略图与拼音索引 ~60 KB），算术和英语一个 `heap_caps_malloc` 都没有。加上 LVGL cache 1 MB 和显示缓冲，三个 App 全开也用不到 8 MB 里的 1.5 MB。
 
 ## 风格
 

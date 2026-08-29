@@ -26,12 +26,35 @@ extern "C" void app_main(void)
     ui_hal::on_delay([](uint32_t ms) { GetHAL().delay(ms); });
     ui_hal::on_get_tick([]() { return GetHAL().millis(); });
 
+    // Which apps exist is a build-time choice; see main/Kconfig.projbuild.
+#if KIDS_APP_COUNT > 1
     // Install order is also the launcher's left-to-right icon order. The
     // launcher opens itself from onLauncherCreate, so nothing is opened here.
     GetMooncake().installApp(std::make_unique<AppLauncher>());
+#ifdef CONFIG_KIDS_APP_HANZI
     GetMooncake().installApp(std::make_unique<AppHanzi>());
+#endif
+#ifdef CONFIG_KIDS_APP_MATH
     GetMooncake().installApp(std::make_unique<AppMath>());
+#endif
+#ifdef CONFIG_KIDS_APP_ENGLISH
     GetMooncake().installApp(std::make_unique<AppEnglish>());
+#endif
+#else
+    // Single-app build: no launcher, so nothing would ever open the app.
+    // Install it and open it here, and it stays open for good -- "go home"
+    // is a no-op in this configuration (see the app's GoHome handler).
+#ifdef CONFIG_KIDS_APP_HANZI
+    const int app_id = GetMooncake().installApp(std::make_unique<AppHanzi>());
+#endif
+#ifdef CONFIG_KIDS_APP_MATH
+    const int app_id = GetMooncake().installApp(std::make_unique<AppMath>());
+#endif
+#ifdef CONFIG_KIDS_APP_ENGLISH
+    const int app_id = GetMooncake().installApp(std::make_unique<AppEnglish>());
+#endif
+    GetMooncake().openApp(app_id);
+#endif
 
     // Main loop
     while (1) {

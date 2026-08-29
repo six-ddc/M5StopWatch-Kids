@@ -76,42 +76,16 @@ void writePpm(const std::string& path, const uint16_t* rgb, int n)
     std::fclose(f);
 }
 
-}  // namespace
-
-int main(int argc, char** argv)
+/// Runs the intro/reveal/land/pause cycle for one character and checks that
+/// every incrementally-drawn frame matches a full repaint of the same state.
+/// Returns true on success (no mismatches).
+bool runCharacter(const hz::DataSource& src, uint32_t want_cp, int max_frames,
+                  const std::string& frames_dir)
 {
-    std::string root       = "tools/hanzi_pipeline/.cache";
-    std::string frames_dir;
-    uint32_t want_cp = 0x6211;  // 我
-    int max_frames   = 400;
-
-    for (int i = 1; i < argc; i++) {
-        if (std::strcmp(argv[i], "--char") == 0 && i + 1 < argc) {
-            want_cp = static_cast<uint32_t>(std::strtoul(argv[++i], nullptr, 16));
-        } else if (std::strcmp(argv[i], "--frames-dir") == 0 && i + 1 < argc) {
-            frames_dir = argv[++i];
-        } else if (std::strcmp(argv[i], "--root") == 0 && i + 1 < argc) {
-            root = argv[++i];
-        } else if (std::strcmp(argv[i], "--frames") == 0 && i + 1 < argc) {
-            max_frames = std::atoi(argv[++i]);
-        }
-    }
-
-    std::vector<uint8_t> blob;
-    if (!readFile(root + "/hanzi_data.bin", blob)) {
-        std::fprintf(stderr, "cannot read blob under %s\n", root.c_str());
-        return 2;
-    }
-    hz::DataSource src;
-    if (!src.bind(blob.data(), blob.size())) {
-        std::fprintf(stderr, "blob failed validation\n");
-        return 2;
-    }
-
     const int32_t order = src.findByCodepoint(want_cp);
     if (order < 0) {
         std::fprintf(stderr, "U+%04X is not in the character set\n", want_cp);
-        return 2;
+        return false;
     }
 
     std::vector<uint8_t> arena_mem(16 * 1024);
@@ -127,7 +101,7 @@ int main(int argc, char** argv)
 
     if (!src.decode(static_cast<uint16_t>(order), tf, ch, arena)) {
         std::fprintf(stderr, "decode failed\n");
-        return 2;
+        return false;
     }
     std::printf("U+%04X pinyin=%s strokes=%u arena=%zu B\n", want_cp,
                 src.pinyinAt(static_cast<uint16_t>(order)), ch.stroke_count, arena.used());
@@ -154,14 +128,14 @@ int main(int argc, char** argv)
     hz::Compositor comp;
     if (!comp.bind(bufs, pal)) {
         std::fprintf(stderr, "compositor bind failed\n");
-        return 2;
+        return false;
     }
     hz::Rasterizer raster(scratch.data(), scratch.size());
 
     comp.resetBase(true);
     if (!comp.addGhost(ch, raster)) {
         std::fprintf(stderr, "ghost render failed\n");
-        return 2;
+        return false;
     }
     comp.repaintAll();
 
@@ -193,7 +167,7 @@ int main(int argc, char** argv)
         if (anim.strokeJustStarted()) {
             if (!comp.beginStroke(ch, anim.strokeIndex(), raster)) {
                 std::fprintf(stderr, "beginStroke failed at %u\n", anim.strokeIndex());
-                return 2;
+                return false;
             }
         }
         if (changed && anim.phase() == hz::Phase::Reveal) {
@@ -251,8 +225,101 @@ int main(int argc, char** argv)
 
     if (mismatches != 0) {
         std::printf("RESULT: FAIL (%d frames differed from a full repaint)\n", mismatches);
-        return 1;
+        return false;
     }
     std::printf("RESULT: PASS (incremental drawing matches full repaint exactly)\n");
-    return 0;
+    return true;
+}
+
+/// Scans the whole blob for the character with the most strokes and the
+/// character with the most total outline points across its strokes -- the two
+/// shapes most likely to stress the animator's dirty-rect tracking.
+void findExtremes(const hz::DataSource& src, uint32_t& most_strokes_cp,
+                  uint16_t& most_strokes_count, uint32_t& most_outline_cp,
+                  size_t& most_outline_count)
+{
+    most_strokes_cp    = 0;
+    most_strokes_count = 0;
+    most_outline_cp    = 0;
+    most_outline_count = 0;
+
+    std::vector<uint8_t> arena_mem(16 * 1024);
+    hz::Transform tf;
+    tf.scale = static_cast<float>(kCanvas) / static_cast<float>(src.coordScale());
+
+    for (uint16_t order = 0; order < src.charCount(); order++) {
+        hz::Arena arena(arena_mem.data(), arena_mem.size());
+        hz::Character ch;
+        if (!src.decode(order, tf, ch, arena)) {
+            continue;
+        }
+        if (ch.stroke_count > most_strokes_count) {
+            most_strokes_count = ch.stroke_count;
+            most_strokes_cp    = src.codepointAt(order);
+        }
+        size_t outline_total = 0;
+        for (uint16_t s = 0; s < ch.stroke_count; s++) {
+            outline_total += ch.strokes[s].outline_count;
+        }
+        if (outline_total > most_outline_count) {
+            most_outline_count = outline_total;
+            most_outline_cp    = src.codepointAt(order);
+        }
+    }
+}
+
+}  // namespace
+
+int main(int argc, char** argv)
+{
+    std::string frames_dir;
+    uint32_t want_cp = 0;
+    bool char_given  = false;
+    int max_frames   = 400;
+
+    for (int i = 1; i < argc; i++) {
+        if (std::strcmp(argv[i], "--char") == 0 && i + 1 < argc) {
+            want_cp    = static_cast<uint32_t>(std::strtoul(argv[++i], nullptr, 16));
+            char_given = true;
+        } else if (std::strcmp(argv[i], "--frames-dir") == 0 && i + 1 < argc) {
+            frames_dir = argv[++i];
+        } else if (std::strcmp(argv[i], "--frames") == 0 && i + 1 < argc) {
+            max_frames = std::atoi(argv[++i]);
+        }
+    }
+
+    std::vector<uint8_t> blob;
+    if (!readFile(HANZI_BLOB_PATH, blob)) {
+        std::fprintf(stderr, "cannot read %s\n", HANZI_BLOB_PATH);
+        return 2;
+    }
+    hz::DataSource src;
+    if (!src.bind(blob.data(), blob.size())) {
+        std::fprintf(stderr, "blob failed validation\n");
+        return 2;
+    }
+
+    if (char_given) {
+        return runCharacter(src, want_cp, max_frames, frames_dir) ? 0 : 1;
+    }
+
+    // No --char: run the default character plus the two shapes most likely to
+    // stress the animator -- most strokes, and most total outline points.
+    uint32_t most_strokes_cp = 0, most_outline_cp = 0;
+    uint16_t most_strokes_count = 0;
+    size_t most_outline_count   = 0;
+    findExtremes(src, most_strokes_cp, most_strokes_count, most_outline_cp, most_outline_count);
+    std::printf("most strokes: U+%04X (%u strokes)\n", most_strokes_cp, most_strokes_count);
+    std::printf("most outline points: U+%04X (%zu points)\n", most_outline_cp,
+                most_outline_count);
+
+    bool ok = true;
+    ok &= runCharacter(src, 0x6211, max_frames, frames_dir);  // 我, the default sanity check
+    if (most_strokes_cp != 0x6211) {
+        ok &= runCharacter(src, most_strokes_cp, max_frames, frames_dir);
+    }
+    if (most_outline_cp != 0x6211 && most_outline_cp != most_strokes_cp) {
+        ok &= runCharacter(src, most_outline_cp, max_frames, frames_dir);
+    }
+    return ok ? 0 : 1;
 }

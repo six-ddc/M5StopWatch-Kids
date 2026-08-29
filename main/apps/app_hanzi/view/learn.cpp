@@ -24,7 +24,9 @@ constexpr uint16_t kCanvas = 300;
 // Leaves a margin between the glyph and the grid lines, like a real copybook.
 constexpr float kGlyphInset = 0.88f;
 
-constexpr size_t kArenaBytes    = 12 * 1024;  // measured peak is 5936 B
+constexpr size_t kArenaBytes = 16 * 1024;  // measured peak across the full
+                                           // 9.5k set at this scale is
+                                           // 10144 B (U+9962 饢)
 constexpr size_t kScratchFloats = kCanvas + 320;
 
 inline uint16_t rgb565(uint8_t r, uint8_t g, uint8_t b)
@@ -61,17 +63,16 @@ LearnPage::~LearnPage()
 bool LearnPage::allocate()
 {
     const size_t px = static_cast<size_t>(kCanvas) * kCanvas;
-    _canvas_buf = static_cast<uint16_t*>(allocPsram(px * sizeof(uint16_t)));
-    _base       = static_cast<uint8_t*>(allocPsram(px));
-    _base_rest  = static_cast<uint8_t*>(allocPsram(px));
-    _stroke     = static_cast<uint8_t*>(allocPsram(px));
-    _reveal     = static_cast<uint8_t*>(allocPsram(px));
-    _arena_mem  = static_cast<uint8_t*>(allocPsram(kArenaBytes));
-    _scratch    = static_cast<float*>(allocPsram(kScratchFloats * sizeof(float)));
+    _canvas_buf     = static_cast<uint16_t*>(allocPsram(px * sizeof(uint16_t)));
+    _base           = static_cast<uint8_t*>(allocPsram(px));
+    _base_rest      = static_cast<uint8_t*>(allocPsram(px));
+    _stroke         = static_cast<uint8_t*>(allocPsram(px));
+    _reveal         = static_cast<uint8_t*>(allocPsram(px));
+    _arena_mem      = static_cast<uint8_t*>(allocPsram(kArenaBytes));
+    _scratch        = static_cast<float*>(allocPsram(kScratchFloats * sizeof(float)));
 
-    if (_canvas_buf == nullptr || _base == nullptr || _base_rest == nullptr ||
-        _stroke == nullptr || _reveal == nullptr || _arena_mem == nullptr ||
-        _scratch == nullptr) {
+    if (_canvas_buf == nullptr || _base == nullptr || _base_rest == nullptr || _stroke == nullptr ||
+        _reveal == nullptr || _arena_mem == nullptr || _scratch == nullptr) {
         mclog::tagError(kTag, "PSRAM allocation failed");
         release();
         return false;
@@ -82,10 +83,9 @@ bool LearnPage::allocate()
 
 void LearnPage::release()
 {
-    for (void* p : {static_cast<void*>(_canvas_buf), static_cast<void*>(_base),
-                    static_cast<void*>(_base_rest), static_cast<void*>(_stroke),
-                    static_cast<void*>(_reveal),
-                    static_cast<void*>(_arena_mem), static_cast<void*>(_scratch)}) {
+    for (void* p : {static_cast<void*>(_canvas_buf), static_cast<void*>(_base), static_cast<void*>(_base_rest),
+                    static_cast<void*>(_stroke), static_cast<void*>(_reveal), static_cast<void*>(_arena_mem),
+                    static_cast<void*>(_scratch)}) {
         if (p != nullptr) {
             heap_caps_free(p);
         }
@@ -188,7 +188,23 @@ void LearnPage::updateLabels()
     if (_src == nullptr || _pinyin == nullptr) {
         return;
     }
-    lv_label_set_text(_pinyin, _src->pinyinAt(_order));
+    // A character reached through the pinyin search shows the reading it was
+    // picked under; otherwise the primary one. The pinyin field carries
+    // every reading, space-separated, primary first -- at 44 px only one
+    // fits the top arc, so cut at the first space.
+    if (_pinyin_override[0] != '\0') {
+        lv_label_set_text(_pinyin, _pinyin_override);
+        return;
+    }
+    const char* pinyin = _src->pinyinAt(_order);
+    char primary[24];
+    size_t n = 0;
+    while (pinyin[n] != '\0' && pinyin[n] != ' ' && n + 1 < sizeof(primary)) {
+        primary[n] = pinyin[n];
+        n++;
+    }
+    primary[n] = '\0';
+    lv_label_set_text(_pinyin, primary);
 }
 
 bool LearnPage::rebuild(bool decode_again)
@@ -214,14 +230,12 @@ bool LearnPage::rebuild(bool decode_again)
     _char = hz::Character{};
 
     hz::Transform tf;
-    tf.scale = (static_cast<float>(kCanvas) / static_cast<float>(_src->coordScale())) *
-               kGlyphInset;
-    tf.ox = 0.5f * (static_cast<float>(kCanvas) - _src->coordScale() * tf.scale);
-    tf.oy = tf.ox;
+    tf.scale = (static_cast<float>(kCanvas) / static_cast<float>(_src->coordScale())) * kGlyphInset;
+    tf.ox    = 0.5f * (static_cast<float>(kCanvas) - _src->coordScale() * tf.scale);
+    tf.oy    = tf.ox;
 
     if (!_src->decode(_order, tf, _char, _arena)) {
-        mclog::tagError(kTag, "decode failed for order {}{}", _order,
-                        _arena.overflowed() ? " (arena overflow)" : "");
+        mclog::tagError(kTag, "decode failed for order {}{}", _order, _arena.overflowed() ? " (arena overflow)" : "");
         return false;
     }
 
@@ -235,8 +249,7 @@ bool LearnPage::rebuild(bool decode_again)
     _comp.repaintAll();
     const uint32_t t3 = GetHAL().millis();
     if (t3 - t0 > 20) {
-        mclog::tagWarn(kTag, "rebuild {}ms (reset {} ghost {} repaint {})", t3 - t0, t1 - t0,
-                       t2 - t1, t3 - t2);
+        mclog::tagWarn(kTag, "rebuild {}ms (reset {} ghost {} repaint {})", t3 - t0, t1 - t0, t2 - t1, t3 - t2);
     }
     if (_canvas != nullptr) {
         dropCanvasCache();
@@ -249,11 +262,12 @@ bool LearnPage::rebuild(bool decode_again)
     return true;
 }
 
-bool LearnPage::showCharacter(uint16_t order)
+bool LearnPage::showCharacter(uint16_t order, const char* reading)
 {
     if (!_ready || _src == nullptr || order >= _src->charCount()) {
         return false;
     }
+    std::snprintf(_pinyin_override, sizeof(_pinyin_override), "%s", reading != nullptr ? reading : "");
     // Roll back on failure: _order feeds saveProgress() and the browse page, so
     // leaving it pointing at a character that never rendered would persist a
     // broken position to NVS and resurrect it on the next boot.
@@ -276,8 +290,7 @@ void LearnPage::next()
 void LearnPage::previous()
 {
     if (_src != nullptr && _src->charCount() > 0) {
-        showCharacter(static_cast<uint16_t>((_order + _src->charCount() - 1) %
-                                            _src->charCount()));
+        showCharacter(static_cast<uint16_t>((_order + _src->charCount() - 1) % _src->charCount()));
     }
 }
 
@@ -348,8 +361,7 @@ void LearnPage::update(uint32_t dt_ms)
     // afterwards would skip the final advance and let land() snap the last few
     // pixels of the tail into place instead of brushing them on.
     if (changed && _anim.hasActiveStroke()) {
-        invalidateRect(_comp.advance(_char.strokes[_anim.strokeIndex()], _anim.revealFrom(),
-                                     _anim.revealTo()));
+        invalidateRect(_comp.advance(_char.strokes[_anim.strokeIndex()], _anim.revealFrom(), _anim.revealTo()));
     }
     if (_anim.strokeJustLanded()) {
         invalidateRect(_comp.land());

@@ -53,7 +53,12 @@ constexpr const char* kNvsTierStars = "tierstars";
 AppMath::AppMath()
 {
     setAppInfo().name = "算术";
+#if !KIDS_STANDALONE
+    // Only a build with a launcher has anything to draw the icon on;
+    // a single-app build leaves the image out of the firmware entirely,
+    // so referencing it here would not even link.
     setAppInfo().icon = (void*)&icon_math;
+#endif
 }
 
 void AppMath::onCreate()
@@ -490,8 +495,12 @@ void AppMath::onRunning()
 
     switch (_key_manager->update()) {
         case input::KeyEvent::GoHome:
+#if !KIDS_STANDALONE
             // The launcher reopens itself once this app reaches Sleeping.
+            // A single-app build has no launcher, so the press does nothing
+            // rather than closing the only app and leaving a blank screen.
             close();
+#endif
             return;
 
         case input::KeyEvent::GoPrevious:  // A

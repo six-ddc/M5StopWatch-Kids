@@ -47,6 +47,7 @@ private:
     void showSearch();
     void openLearn(uint16_t order, LearnFrom from, const char* reading = nullptr);
     void saveProgress();
+    void saveInputMode();
     void tickAnimation(uint32_t now_ms);
 
     std::unique_ptr<input::KeyManager> _key_manager;

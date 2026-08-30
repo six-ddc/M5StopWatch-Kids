@@ -26,6 +26,7 @@ constexpr uint32_t kKeyPollMs       = 25;
 
 constexpr const char* kNvsNamespace = "hanzi";
 constexpr const char* kNvsLastChar  = "last";
+constexpr const char* kNvsInputMode = "imode";
 
 }  // namespace
 
@@ -56,12 +57,17 @@ void AppHanzi::onOpen()
     }
     mclog::tagInfo(getAppInfo().name, "{} characters, {} lessons", _source.charCount(), _source.lessonCount());
 
-    uint16_t start = 0;
+    uint16_t start     = 0;
+    uint8_t input_mode = 0;
     {
         Settings settings(kNvsNamespace, false);
         const int stored = settings.GetInt(kNvsLastChar, 0);
         if (stored > 0 && stored < _source.charCount()) {
             start = static_cast<uint16_t>(stored);
+        }
+        const int mode = settings.GetInt(kNvsInputMode, 0);
+        if (mode > 0 && mode < view::SearchPage::kModeCount) {
+            input_mode = static_cast<uint8_t>(mode);
         }
     }
 
@@ -97,10 +103,6 @@ void AppHanzi::onOpen()
     }
 
     _search = std::make_unique<view::SearchPage>();
-    // No browse callback for now: on the real glass a ring scrub reads as a
-    // horizontal swipe often enough that the mode-switch gesture fights the
-    // dial, so the browse entry is parked until it gets a better trigger.
-    // (SearchPage keeps the capability; pass a callback to re-enable.)
     if (!_search->create(lv_screen_active(), &_source, &_engine)) {
         mclog::tagError(getAppInfo().name, "search page failed to initialise");
         _search.reset();
@@ -117,6 +119,9 @@ void AppHanzi::onOpen()
         // it keeps its own default syllable.
         _search->showCharacter(start);
     }
+    // Restore the input mode the child last used; the character state above
+    // carries into it.
+    _search->setMode(input_mode);
     // Search is the landing page: a child usually arrives knowing the sound
     // of a character; the textbook browse mode is one corner tap away.
     showSearch();
@@ -219,6 +224,18 @@ void AppHanzi::openLearn(uint16_t order, LearnFrom from, const char* reading)
     }
     _last_tick_ms   = GetHAL().millis();
     _progress_dirty = true;
+}
+
+void AppHanzi::saveInputMode()
+{
+    // Same discipline as saveProgress: the mode flips inside an LVGL gesture
+    // callback, where the page only marks it dirty; the write happens here,
+    // outside the lock.
+    uint8_t mode = 0;
+    if (_search && _search->takeModeDirty(mode)) {
+        Settings settings(kNvsNamespace, true);
+        settings.SetInt(kNvsInputMode, static_cast<int>(mode));
+    }
 }
 
 void AppHanzi::saveProgress()
@@ -344,6 +361,7 @@ void AppHanzi::onRunning()
     if (_progress_dirty) {
         saveProgress();
     }
+    saveInputMode();
 
     tickAnimation(now_ms);
 }
@@ -377,6 +395,7 @@ void AppHanzi::onClose()
     mclog::tagInfo(getAppInfo().name, "on close");
 
     saveProgress();
+    saveInputMode();
     _key_manager.reset();
 
     LvglLockGuard lock;

@@ -6,6 +6,7 @@
 #pragma once
 #include <hal/hal.h>
 #include <cstdint>
+#include "glyph_painter.h"
 #include "t9_engine.h"
 
 // Reusable three-wheel pinyin picker for the round screen, in the iOS
@@ -31,18 +32,6 @@
 
 namespace pime {
 
-// Draws one candidate into an A8 coverage buffer (stride == w, zeroed by the
-// caller) and captions it. The hanzi app backs this with the stroke engine;
-// a different host could use a font or bitmaps.
-class GlyphPainter {
-public:
-    virtual ~GlyphPainter()                                                  = default;
-    virtual bool paint(uint16_t id, uint8_t* buffer, uint16_t w, uint16_t h) = 0;
-    // Toned reading(s) of `id`, space-separated, primary first; nullptr for
-    // no caption. The view shows the reading matching the dialled syllable.
-    virtual const char* caption(uint16_t id) const = 0;
-};
-
 // Page-object conventions follow view::BrowsePage: create() fails clean,
 // the object lives for the app's lifetime and toggles with setHidden().
 class PickerView {
@@ -67,6 +56,16 @@ public:
     // english views. `reading` (optional) receives the toned reading the
     // candidate was picked under.
     bool takePick(uint16_t& id, char* reading = nullptr, size_t cap = 0);
+
+    // Mode-switch state carry (see view::SearchPage): the carrier is a
+    // toneless letter prefix plus the selected candidate's id (-1 for none).
+    // The wheels always dial a full syllable, so the export is never empty
+    // and always carries an id. Importing an incomplete prefix completes it
+    // to the first legal syllable in letter order under that prefix; an
+    // empty prefix (the other modes have an empty state, a wheel does not)
+    // lands on the default syllable.
+    void exportState(char* prefix, size_t cap, int32_t& id) const;
+    void importState(const char* prefix, int32_t id);
 
     // The widget's full-screen root, for hosts that add their own gestures.
     lv_obj_t* root() const
@@ -146,6 +145,8 @@ private:
     void updateCaption();
     void matchedReading(uint16_t id, char* out, size_t cap) const;
     void confirmPick();
+    // Scrolls the character wheel onto `id` if it is in the current list.
+    void dialToCandidate(uint16_t id);
 
     int8_t wheelForPoint(int32_t x) const;
     float rubberOffset(const Wheel& wh) const;

@@ -388,6 +388,11 @@ void PickerView::showCharacter(uint16_t id)
         selectSyllable(kDefaultSyllable);
         return;
     }
+    dialToCandidate(id);
+}
+
+void PickerView::dialToCandidate(uint16_t id)
+{
     // Scroll the character wheel to this exact character.
     const uint16_t total = _wheels[2].count;
     uint16_t ids[16];
@@ -403,6 +408,52 @@ void PickerView::showCharacter(uint16_t id)
                 return;
             }
         }
+    }
+}
+
+void PickerView::exportState(char* prefix, size_t cap, int32_t& id) const
+{
+    std::snprintf(prefix, cap, "%s", _syllable);
+    id = _wheels[2].count > 0 ? static_cast<int32_t>(candidateAt(candidateIndex())) : -1;
+}
+
+void PickerView::importState(const char* prefix, int32_t id)
+{
+    if (_root == nullptr) {
+        return;
+    }
+    if (prefix == nullptr || prefix[0] == '\0') {
+        // The other modes have an empty state, a wheel picker does not:
+        // arriving empty lands on the default syllable (and switching away
+        // again then carries that syllable -- accepted, it beats inventing
+        // an artificial blank wheel state).
+        selectSyllable(kDefaultSyllable);
+        return;
+    }
+    // Complete an unfinished prefix to the smallest legal syllable in letter
+    // order under it. The scan covers every unit: a prefix like "c" matches
+    // both the "c" and "ch" units and their syllables interleave, so no
+    // early-out on the first matching unit is sound.
+    const size_t plen           = std::strlen(prefix);
+    char best[kMaxSyllable + 1] = {};
+    for (uint16_t u = 0; u < _source->unitCount(); u++) {
+        for (uint16_t s = 0; s < _source->suffixCount(u); s++) {
+            char syl[kMaxSyllable + 1];
+            std::snprintf(syl, sizeof(syl), "%s%s", _source->unitAt(u), _source->suffixAt(u, s));
+            if (std::strncmp(syl, prefix, plen) != 0) {
+                continue;
+            }
+            if (best[0] == '\0' || std::strcmp(syl, best) < 0) {
+                std::memcpy(best, syl, sizeof(best));
+            }
+        }
+    }
+    if (best[0] == '\0' || !selectSyllable(best)) {
+        selectSyllable(kDefaultSyllable);
+        return;
+    }
+    if (id >= 0) {
+        dialToCandidate(static_cast<uint16_t>(id));
     }
 }
 

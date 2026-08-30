@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
+#include <apps/common/pinyin_ime/dial_view.h>
+#include <apps/common/pinyin_ime/ime_view.h>
 #include <apps/common/pinyin_ime/picker_view.h>
 #include <hal/hal.h>
 #include <cstdint>
@@ -143,52 +145,98 @@ private:
     char _pinyin_override[16] = {};
 };
 
-// Pinyin lookup, the app's landing page: the reusable three-wheel syllable
-// picker wired to the stroke engine. The page itself is thin glue -- it owns
-// the GlyphPainter that renders candidates with hz::Compositor, wires the
-// horizontal-swipe gesture that leads to the textbook browse mode, and
-// forwards everything else to pime::PickerView.
+// Pinyin lookup, the app's landing page, hosting three interchangeable input
+// modes over one stroke-engine-backed GlyphPainter: the three-wheel syllable
+// picker, the 26-letter dial and the T9 keypad. A wide horizontal swipe
+// cycles the modes (left = next, right = previous) and the current input
+// state rides along as a toneless letter prefix plus the selected
+// candidate's id. The page is thin glue: it routes the app-facing API to
+// whichever mode is live, so the app never learns which input paradigm the
+// child prefers -- it only persists the choice.
 class SearchPage {
 public:
-    using BrowseCallback = std::function<void()>;
+    enum class Mode : uint8_t {
+        Picker = 0,
+        Dial   = 1,
+        Keypad = 2,
+    };
+    static constexpr uint8_t kModeCount = 3;
 
     // Defined in search.cpp, where HanziPainter is a complete type (the
     // implicit versions would instantiate unique_ptr's deleter here).
     SearchPage();
     ~SearchPage();
 
-    bool create(lv_obj_t* parent, const hz::DataSource* source, const pime::CandidateSource* engine,
-                BrowseCallback on_browse = nullptr);
+    bool create(lv_obj_t* parent, const hz::DataSource* source, const pime::T9Engine* engine);
     void destroy();
-
-    // Invoked from the LVGL click handler; not part of the page's own API.
-    void handleBrowseClicked();
     void setHidden(bool hidden);
 
-    // Dials the wheels onto this character's syllable, so opening the page
-    // resumes at the last-learned character.
+    // Dials the current mode onto this character's syllable, so opening the
+    // page resumes at the last-learned character.
     void showCharacter(uint16_t order);
 
-    // Physical-key routing (one detent down/up on the character wheel);
-    // call with the LVGL lock held.
+    // Physical-key routing (character wheel detent on the picker, candidate
+    // page on the other modes); call with the LVGL lock held.
     void nextCandidatePage();
     void previousCandidatePage();
-    // One-shot: the selection band was tapped; `order` is the dialled
+    // One-shot: a candidate was confirmed in whichever mode; `order` is the
     // character and `reading` (optional) the toned reading it was picked
     // under.
     bool takePick(uint16_t& order, char* reading = nullptr, size_t cap = 0);
 
-    // The host sim drives input through this.
+    // Mode restore/persist plumbing. setMode() switches instantly (state
+    // still carries over) and does not mark the mode dirty -- it restores
+    // the NVS value at onOpen. takeModeDirty() is the one-shot the app
+    // drains from onRunning, where writing NVS is allowed.
+    void setMode(uint8_t mode);
+    uint8_t mode() const
+    {
+        return static_cast<uint8_t>(_mode);
+    }
+    bool takeModeDirty(uint8_t& mode);
+
+    // Invoked from the LVGL gesture callback; not part of the page's own
+    // API. `dir` is +1 for the next mode (swipe left), -1 for the previous.
+    void handleModeSwipe(int8_t dir);
+    // True while the live mode owns the current press (wheel steering, ring
+    // scrubbing, a resting finger on a pad key) or a slide is in flight; the
+    // gesture callback asks before switching.
+    bool gestureBusy() const;
+
+    // The host sim drives input through these.
     pime::PickerView& picker()
     {
         return _picker;
     }
+    pime::DialView& dial()
+    {
+        return _dial;
+    }
+    pime::ImeView& keypad()
+    {
+        return _ime;
+    }
 
 private:
     class HanziPainter;
+
+    lv_obj_t* modeRoot(Mode m);
+    void applyVisibility();
+    void carryState(Mode from, Mode to);
+    void switchMode(Mode to, int8_t dir, bool animate);
+
+    static void slideExecCb(void* obj, int32_t v);
+    static void slideOutDoneCb(lv_anim_t* anim);
+    static void slideInDoneCb(lv_anim_t* anim);
+
     std::unique_ptr<HanziPainter> _painter;
     pime::PickerView _picker;
-    BrowseCallback _on_browse;
+    pime::DialView _dial;
+    pime::ImeView _ime;
+    Mode _mode       = Mode::Picker;
+    bool _mode_dirty = false;
+    bool _sliding    = false;
+    bool _hidden     = false;
 };
 
 }  // namespace view

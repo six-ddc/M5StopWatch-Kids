@@ -401,11 +401,7 @@ int main(int argc, char** argv)
     }
 
     view::SearchPage search;
-    bool to_browse_fired = false;
-    if (!search.create(screen, &src, &engine, [&to_browse_fired]() {
-            to_browse_fired = true;
-            std::printf("[sim] search -> browse gesture fired\n");
-        })) {
+    if (!search.create(screen, &src, &engine)) {
         std::fprintf(stderr, "SearchPage::create failed\n");
         return 1;
     }
@@ -448,17 +444,6 @@ int main(int argc, char** argv)
         }
     }
     checkedScreenshot(out_dir, "picker_default");
-
-    // A horizontal swipe (mostly-horizontal from the first move) must still
-    // switch modes: the wheels only claim vertical drags.
-    swipeHorizontal(100, 360, 300);
-    if (!to_browse_fired) {
-        ++g_failures;
-        std::printf("  search swipe            GESTURE NOT DELIVERED\n");
-    } else {
-        std::printf("  search swipe            ok\n");
-    }
-    expectSyllable("hao", "swipe leaves wheels");
 
     // Unit-wheel linkage through the real indev: one detent down goes h->g,
     // and the suffix "ao" survives because g+ao is legal (iOS date-picker
@@ -656,6 +641,155 @@ int main(int argc, char** argv)
         expectSyllable("shi", "resume syllable");
         expectSettledAt(3, "resume position");
         checkedScreenshot(out_dir, "picker_resume");
+    }
+
+    // --- Input-mode cycling (picker -> dial -> T9 -> picker) with state
+    // --- carry, through LVGL's real gesture dispatch.
+    {
+        auto expectMode = [&](uint8_t want, const char* what) {
+            if (search.mode() != want) {
+                ++g_failures;
+                std::printf("  %-22s mode %u, want %u\n", what, search.mode(), want);
+            } else {
+                std::printf("  %-22s ok (mode %u)\n", what, want);
+            }
+        };
+        auto expectStr = [&](const char* got, const char* want, const char* what) {
+            if (std::strcmp(got, want) != 0) {
+                ++g_failures;
+                std::printf("  %-22s \"%s\", want \"%s\"\n", what, got, want);
+            } else {
+                std::printf("  %-22s ok (\"%s\")\n", what, got);
+            }
+        };
+        // All swipe scripts run at y=150: over the picker that is plain
+        // wheel surface (a horizontal move releases the wheel), over the
+        // dial it is inside the ring (r < 170, so no letter arms), and over
+        // the keypad it is above the top key row (no key press suppresses
+        // the gesture).
+        auto swipeLeft = [&] {
+            swipeHorizontal(360, 106, 150);
+            pump(33, 15);
+        };
+        auto swipeRight = [&] {
+            swipeHorizontal(106, 360, 150);
+            pump(33, 15);
+        };
+
+        // While a wheel is being steered, a horizontal continuation of the
+        // same press must not switch modes: scrollActive() suppresses it.
+        picker.selectSyllable("xiang");
+        pump(33, 3);
+        // 24 px of vertical travel starts wheel steering (tap slop is 8) but
+        // stays under LVGL's 50 px gesture limit, so the horizontal leg is
+        // what fires the (suppressed) LEFT gesture.
+        g_touch_frames.clear();
+        g_touch_index = 0;
+        for (int i = 0; i <= 2; i++) {
+            g_touch_frames.push_back({{static_cast<int32_t>(colX(2)), static_cast<int32_t>(250 + i * 12)}, true});
+        }
+        for (int i = 1; i <= 6; i++) {
+            g_touch_frames.push_back({{static_cast<int32_t>(colX(2) - i * 20), 274}, true});
+        }
+        g_touch_frames.push_back({{static_cast<int32_t>(colX(2) - 120), 274}, false});
+        pump(33, static_cast<int>(g_touch_frames.size()) + 40);
+        expectMode(0, "steer suppresses swipe");
+
+        // Dial the state to carry: syllable "xiang", candidate 0.
+        picker.selectSyllable("xiang");
+        pump(33, 3);
+        uint16_t xiang_first = 0;
+        engine.queryExact("xiang", &xiang_first, 1, 0);
+
+        swipeLeft();
+        expectMode(1, "swipe -> dial");
+        expectStr(search.dial().prefix(), "xiang", "dial carries prefix");
+        if (search.dial().candidatePage() != 0) {
+            ++g_failures;
+            std::printf("  dial carries page       page %u, want 0 (holds order %u)\n", search.dial().candidatePage(),
+                        xiang_first);
+        }
+        checkedScreenshot(out_dir, "mode_dial_xiang");
+
+        swipeLeft();
+        expectMode(2, "swipe -> T9");
+        expectStr(search.keypad().digits(), "94264", "T9 carries digits");
+        expectStr(search.keypad().interpretation(), "xiang", "T9 selects interp");
+        checkedScreenshot(out_dir, "mode_t9_xiang");
+
+        swipeLeft();
+        expectMode(0, "swipe wraps to picker");
+        expectSyllable("xiang", "picker restores");
+
+        swipeRight();
+        expectMode(2, "right swipe reverses");
+        expectStr(search.keypad().digits(), "94264", "T9 restores digits");
+
+        // A finger resting on a pad key owns the press: the gesture is
+        // ignored, the keystroke stays a keystroke.
+        g_touch_frames.clear();
+        g_touch_index = 0;
+        for (int i = 0; i <= 8; i++) {
+            g_touch_frames.push_back({{static_cast<int32_t>(141 + i * 20), 321}, true});
+        }
+        g_touch_frames.push_back({{static_cast<int32_t>(141 + 8 * 20), 321}, false});
+        pump(33, static_cast<int>(g_touch_frames.size()) + 20);
+        expectMode(2, "key press suppresses");
+
+        // Partial prefix carry: the dial types "xi" (unfinished on purpose),
+        // T9 keeps it as the selected interpretation, and the picker
+        // completes it to the first legal syllable in letter order ("xi"
+        // itself is one).
+        swipeRight();
+        expectMode(1, "back to dial");
+        search.dial().reset();
+        search.dial().typeLetter('x');
+        search.dial().typeLetter('i');
+        pump(33, 3);
+        checkedScreenshot(out_dir, "mode_dial_xi");
+        swipeLeft();
+        expectStr(search.keypad().digits(), "94", "T9 partial digits");
+        expectStr(search.keypad().interpretation(), "xi", "T9 partial interp");
+        checkedScreenshot(out_dir, "mode_t9_xi");
+        swipeLeft();
+        expectSyllable("xi", "picker completes xi");
+
+        // Empty carry: the dial and keypad have an empty state, the wheels
+        // do not -- an empty prefix lands the picker on its default.
+        swipeLeft();
+        expectMode(1, "picker -> dial again");
+        search.dial().reset();
+        pump(33, 3);
+        checkedScreenshot(out_dir, "mode_dial_empty");
+        swipeRight();
+        expectMode(0, "empty carry to picker");
+        expectSyllable("hao", "empty falls to default");
+
+        // The dirty flag is a one-shot the app drains for its NVS write.
+        uint8_t stored = 0;
+        if (!search.takeModeDirty(stored) || stored != 0) {
+            ++g_failures;
+            std::printf("  mode dirty              not raised (or wrong mode %u)\n", stored);
+        } else if (search.takeModeDirty(stored)) {
+            ++g_failures;
+            std::printf("  mode dirty              fired twice\n");
+        } else {
+            std::printf("  mode dirty              ok (one-shot, mode 0)\n");
+        }
+
+        // setMode restores the NVS value instantly, still carrying state,
+        // and without re-raising the dirty flag.
+        search.setMode(2);
+        pump(33, 3);
+        expectMode(2, "setMode restores T9");
+        expectStr(search.keypad().interpretation(), "hao", "setMode carries state");
+        if (search.takeModeDirty(stored)) {
+            ++g_failures;
+            std::printf("  setMode dirty           restore must not mark dirty\n");
+        }
+        search.setMode(0);
+        pump(33, 3);
+        expectSyllable("hao", "setMode back to picker");
     }
 
     if (g_failures == 0) {

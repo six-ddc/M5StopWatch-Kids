@@ -25,6 +25,10 @@ python3 tools/make_readme_shots.py     # 跑三个 sim，挑图，抠圆，写�
 <table>
 <tr>
 <td align="center"><img src="docs/images/hanzi-search.png" width="220"><br><sub><b>识字</b> · 滚筒拼读查字</sub></td>
+<td align="center"><img src="docs/images/hanzi-dial.png" width="220"><br><sub><b>识字</b> · 字母拨盘（横滑切换，状态带过去）</sub></td>
+<td align="center"><img src="docs/images/hanzi-t9.png" width="220"><br><sub><b>识字</b> · T9 九宫格（同一份输入的第三种打开方式）</sub></td>
+</tr>
+<tr>
 <td align="center"><img src="docs/images/hanzi-browse.png" width="220"><br><sub><b>识字</b> · 按课文分页浏览</sub></td>
 <td align="center"><img src="docs/images/hanzi-learn.png" width="220"><br><sub><b>识字</b> · 田字格里逐笔写</sub></td>
 </tr>

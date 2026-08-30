@@ -33,6 +33,8 @@ SS = 8  # supersampling for the alpha edge; the panel is round, the pixels are n
 # working directory; the other two take --out.
 SHOTS = [
     ("hanzi", "picker_default", "hanzi-search.png"),
+    ("hanzi", "mode_dial_xiang", "hanzi-dial.png"),
+    ("hanzi", "mode_t9_xiang", "hanzi-t9.png"),
     ("hanzi", "browse", "hanzi-browse.png"),
     ("hanzi", "learn_06", "hanzi-learn.png"),
     ("math", "map_fresh", "math-map.png"),

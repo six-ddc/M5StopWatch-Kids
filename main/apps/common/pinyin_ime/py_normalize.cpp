@@ -24,8 +24,8 @@ struct ToneMap {
 constexpr ToneMap kToneMap[] = {
     {"ā", 'a'}, {"á", 'a'}, {"ǎ", 'a'}, {"à", 'a'}, {"ē", 'e'}, {"é", 'e'}, {"ě", 'e'}, {"è", 'e'},
     {"ī", 'i'}, {"í", 'i'}, {"ǐ", 'i'}, {"ì", 'i'}, {"ō", 'o'}, {"ó", 'o'}, {"ǒ", 'o'}, {"ò", 'o'},
-    {"ū", 'u'}, {"ú", 'u'}, {"ǔ", 'u'}, {"ù", 'u'}, {"ǖ", 'u'}, {"ǘ", 'u'}, {"ǚ", 'u'}, {"ǜ", 'u'},
-    {"ü", 'u'}, {"ń", 'n'}, {"ň", 'n'}, {"ǹ", 'n'}, {"ḿ", 'm'}, {"ê", 'e'}, {"ế", 'e'}, {"ề", 'e'},
+    {"ū", 'u'}, {"ú", 'u'}, {"ǔ", 'u'}, {"ù", 'u'}, {"ǖ", 'v'}, {"ǘ", 'v'}, {"ǚ", 'v'}, {"ǜ", 'v'},
+    {"ü", 'v'}, {"ń", 'n'}, {"ň", 'n'}, {"ǹ", 'n'}, {"ḿ", 'm'}, {"ê", 'e'}, {"ế", 'e'}, {"ề", 'e'},
 };
 
 }  // namespace
@@ -66,6 +66,33 @@ size_t pyNormalize(const char* toned, char* out, size_t cap)
         }
         out[written++] = plain;
         p += step;
+    }
+    out[written] = '\0';
+    return written;
+}
+
+size_t pyDisplay(const char* plain, char* out, size_t cap)
+{
+    if (out == nullptr || cap == 0) {
+        return 0;
+    }
+    out[0] = '\0';
+    if (plain == nullptr) {
+        return 0;
+    }
+    size_t written = 0;
+    for (const char* p = plain; *p != '\0'; ++p) {
+        const size_t need = *p == 'v' ? 2 : 1;
+        if (written + need >= cap) {
+            out[0] = '\0';
+            return 0;
+        }
+        if (*p == 'v') {
+            out[written++] = static_cast<char>(0xC3);  // U+00FC "ü"
+            out[written++] = static_cast<char>(0xBC);
+        } else {
+            out[written++] = *p;
+        }
     }
     out[written] = '\0';
     return written;

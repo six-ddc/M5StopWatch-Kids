@@ -25,14 +25,17 @@ namespace {
 // collides with any full-width chip row.) That frees the whole band above
 // the chips, so the content stack moves up and the keypad grows to
 // child-finger size.
-constexpr int16_t kGuideX     = 78;
-constexpr int16_t kGuideY     = -184;  // corners stay at r<=229
-constexpr int16_t kPageY      = -184;
-constexpr int16_t kChipY      = -140;  // pinyin interpretation chips (32 px)
-constexpr int16_t kEmptyY     = -115;  // empty-state prompt
-constexpr int16_t kCandY      = -66;   // character candidate strip
-constexpr int16_t kCandStep   = 72;
-constexpr int16_t kCandChipW  = 68;
+constexpr int16_t kGuideX = 78;
+constexpr int16_t kGuideY = -184;  // corners stay at r<=229
+constexpr int16_t kPageY  = -184;
+constexpr int16_t kChipY  = -140;  // pinyin interpretation chips (32 px)
+constexpr int16_t kEmptyY = -115;  // empty-state prompt
+constexpr int16_t kCandY  = -66;   // character candidate strip
+// Chip width chases the widest toned caption: "chuáng" inks 70 px in the
+// 20 px tone font, so 72 px chips at a 76 px pitch keep every reading on
+// one line (corners stay at r <= 219, inside the glass).
+constexpr int16_t kCandStep   = 76;
+constexpr int16_t kCandChipW  = 72;
 constexpr int16_t kCandChipH  = 92;
 constexpr int16_t kKeyW       = 82;
 constexpr int16_t kKeyH       = 60;
@@ -52,7 +55,10 @@ constexpr uint32_t kCandBg = 0x262624;
 constexpr uint32_t kPressedBg = 0x45443F;
 constexpr uint32_t kReject    = 0xB03A2E;
 
-constexpr const char* kKeyCaps[] = {"abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"};
+// Key 8 carries ü where a phone would print v: no pinyin syllable contains
+// an ASCII v, and pyNormalize folds ü to the 'v' carrier on this very key,
+// so the digit routing is untouched.
+constexpr const char* kKeyCaps[] = {"abc", "def", "ghi", "jkl", "mno", "pqrs", "tuü", "wxyz"};
 
 // The rejected-key flash restores itself through a one-shot timer; the timer
 // runs inside lv_timer_handler, so the lock is already held there.
@@ -193,7 +199,7 @@ bool ImeView::create(lv_obj_t* parent, const T9Engine* source, GlyphPainter* pai
         lv_obj_clear_flag(c.image, LV_OBJ_FLAG_CLICKABLE);
 
         c.caption = lv_label_create(c.chip);
-        lv_obj_set_style_text_font(c.caption, &lv_font_hanzi_ui_24, 0);
+        lv_obj_set_style_text_font(c.caption, &lv_font_pinyin_tone_20, 0);
         lv_obj_set_style_text_color(c.caption, lv_color_hex(kGrey), 0);
         lv_obj_set_style_text_align(c.caption, LV_TEXT_ALIGN_CENTER, 0);
         lv_obj_set_width(c.caption, kCandChipW - 2);
@@ -628,9 +634,13 @@ void ImeView::refreshInterps()
             lv_obj_add_flag(chip.chip, LV_OBJ_FLAG_HIDDEN);
             continue;
         }
-        lv_label_set_text(chip.label, text);
+        // Interpretations are internal ASCII; on glass 'v' reads "ü" (the
+        // "..." pager chips pass through pyDisplay untouched).
+        char disp[16];
+        pyDisplay(text, disp, sizeof(disp));
+        lv_label_set_text(chip.label, disp);
         lv_point_t size;
-        lv_text_get_size(&size, text, &lv_font_pinyin_latin_32, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
+        lv_text_get_size(&size, disp, &lv_font_pinyin_latin_32, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
         widths[i] = static_cast<int16_t>(size.x + 2 * kChipPadX);
         row_w += widths[i] + (visible > 0 ? kChipGap : 0);
         visible++;

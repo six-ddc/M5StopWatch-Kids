@@ -96,8 +96,8 @@ public:
 
 private:
     static constexpr uint8_t kLetters    = 26;
-    static constexpr uint8_t kCandCells  = 9;  // honeycomb 5 + 4
-    static constexpr uint8_t kRow0       = 5;
+    static constexpr uint8_t kCandCells  = 8;  // two rows of 4
+    static constexpr uint8_t kRow0       = 4;
     static constexpr uint16_t kCandGlyph = 52;
     static constexpr uint8_t kMaxLen     = 6;  // longest syllable: zhuang
 

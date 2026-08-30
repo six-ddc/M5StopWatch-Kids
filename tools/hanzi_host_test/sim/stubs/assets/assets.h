@@ -14,5 +14,6 @@
 LV_FONT_DECLARE(lv_font_hanzi_ui_24);
 LV_FONT_DECLARE(lv_font_hanzi_pinyin_44);
 LV_FONT_DECLARE(lv_font_pinyin_latin_32);
+LV_FONT_DECLARE(lv_font_pinyin_tone_20);
 LV_FONT_DECLARE(lv_font_digit_96);
 LV_FONT_DECLARE(lv_font_digit_64);

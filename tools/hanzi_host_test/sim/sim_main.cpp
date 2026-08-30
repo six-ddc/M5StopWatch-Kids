@@ -742,6 +742,34 @@ int main(int argc, char** argv)
         // itself is one).
         swipeRight();
         expectMode(1, "back to dial");
+
+        // Widest caption the data can produce: "chuáng" inks 70 px in the
+        // 20 px tone font, the one the chips were sized for. The screenshot
+        // pins that it stays on one line inside its chip (a wrap used to
+        // spill the tail letter over the glyph above).
+        search.dial().reset();
+        for (char c : {'c', 'h', 'u', 'a', 'n', 'g'}) {
+            search.dial().typeLetter(c);
+        }
+        expectStr(search.dial().prefix(), "chuang", "dial types chuang");
+        pump(33, 3);
+        checkedScreenshot(out_dir, "mode_dial_chuang");
+
+        // The ü channel: pyNormalize folds ü/ǖǘǚǜ into the internal 'v'
+        // carrier, so green (lǜ) lives under "lv" and road (lù) under "lu"
+        // -- the split the device is supposed to teach. On glass every 'v'
+        // renders as "ü" (ring slot, echo, candidates' toned captions); a
+        // charset regression would blank the ü/ǜ here.
+        search.dial().reset();
+        search.dial().typeLetter('l');
+        if (!search.dial().typeLetter('v')) {
+            ++g_failures;
+            std::printf("  dial types lv           'v' rejected, want ü channel open\n");
+        }
+        expectStr(search.dial().prefix(), "lv", "dial types lv");
+        pump(33, 3);
+        checkedScreenshot(out_dir, "mode_dial_lv");
+
         search.dial().reset();
         search.dial().typeLetter('x');
         search.dial().typeLetter('i');

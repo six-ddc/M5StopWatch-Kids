@@ -170,8 +170,8 @@ int main()
         const char* toned;
         const char* plain;
     } kNorm[] = {
-        {"hǎo", "hao"}, {"hào", "hao"}, {"lǜ", "lu"}, {"nǚ", "nu"}, {"zhuāng", "zhuang"},
-        {"ér", "er"},   {"ń", "n"},     {"ḿ", "m"},   {"de", "de"}, {"ê", "e"},
+        {"hǎo", "hao"}, {"hào", "hao"}, {"lǜ", "lv"}, {"nǚ", "nv"}, {"zhuāng", "zhuang"}, {"ér", "er"},
+        {"ń", "n"},     {"ḿ", "m"},     {"de", "de"}, {"ê", "e"},   {"lüè", "lve"},       {"lù", "lu"},
     };
     for (const auto& c : kNorm) {
         char out[16];
@@ -183,6 +183,17 @@ int main()
         check(pime::pyNormalize("Hao", out, sizeof(out)) == 0, "normalize rejects upper case");
         check(pime::pyNormalize("", out, sizeof(out)) == 0, "normalize rejects empty");
         check(pime::pyNormalize("hǎo!", out, sizeof(out)) == 0, "normalize rejects stray punctuation");
+    }
+    {
+        // Display form: the internal 'v' carrier renders as "ü" on glass.
+        char out[16];
+        check(pime::pyDisplay("lv", out, sizeof(out)) == 3 && std::strcmp(out, "l\xC3\xBC") == 0, "display lv -> lü");
+        check(pime::pyDisplay("lve", out, sizeof(out)) == 4 && std::strcmp(out,
+                                                                           "l\xC3\xBC"
+                                                                           "e") == 0,
+              "display lve -> lüe");
+        check(pime::pyDisplay("lu", out, sizeof(out)) == 2 && std::strcmp(out, "lu") == 0, "display lu unchanged");
+        check(pime::pyDisplay("v", out, 2) == 0 && out[0] == '\0', "display rejects too-small buffer");
     }
 
     // -- build entries from the real blob ----------------------------------

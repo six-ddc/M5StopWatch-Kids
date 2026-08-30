@@ -21,10 +21,16 @@ namespace {
 
 // Geometry (LV_ALIGN_CENTER offsets on the 466 px round screen, radius 233).
 // The 26 letters sit on one ring, 'a' at 12 o'clock running clockwise; the
-// centre disc holds the echo, a 5+4 honeycomb of candidates and the page
+// centre disc holds the echo, a 4+4 grid of candidates and the page
 // indicator. There are no A/B guide labels on this page -- the ring owns the
 // whole rim -- which is a deliberate exception to the app-wide "guide under
 // its key" rule; A/B page the candidate grid as everywhere else.
+//
+// Chip width is caption-driven: the widest toned reading ("chuáng") inks
+// 70 px in the 20 px caption font, and a row's half-span may not exceed 157
+// or the chip corners cross kRingHitMin and steal ring touches. Four 74 px
+// chips at an 80 px pitch is the widest grid that satisfies both, which is
+// why this is a 4+4 and not the 5+4 it used to be.
 constexpr int16_t kScreenC   = 233;
 constexpr float kRingR       = 203.0f;
 constexpr float kSlotDeg     = 360.0f / 26.0f;
@@ -34,9 +40,10 @@ constexpr float kSnapSlots   = 2.0f;    // max slots a touch may snap across
 constexpr int16_t kEchoY     = -112;
 constexpr int16_t kEmptyY    = -20;
 constexpr int16_t kRowY[2]   = {-26, 58};
-constexpr int16_t kCandPitch = 64;
-constexpr int16_t kCandW     = 58;
+constexpr int16_t kCandPitch = 80;
+constexpr int16_t kCandW     = 74;
 constexpr int16_t kCandH     = 80;
+constexpr int16_t kCaptionH  = 24;
 constexpr int16_t kPageY     = 112;
 constexpr float kDotR        = 179.0f;  // recall dot, inside its letter
 
@@ -122,7 +129,11 @@ bool DialView::create(lv_obj_t* parent, const T9Engine* source, GlyphPainter* pa
         lv_obj_t* label = lv_label_create(_root);
         _letters[i]     = label;
         lv_obj_set_style_text_font(label, &lv_font_pinyin_latin_32, 0);
-        char text[2] = {static_cast<char>('a' + i), '\0'};
+        // The 'v' slot reads "ü" on glass: v is the internal carrier for ü
+        // (see pyNormalize), the child dials the letter they learned.
+        const char plain[2] = {static_cast<char>('a' + i), '\0'};
+        char text[4];
+        pyDisplay(plain, text, sizeof(text));
         lv_label_set_text(label, text);
         const float a = slotAngleRad(i);
         lv_obj_align(label, LV_ALIGN_CENTER, static_cast<int16_t>(kRingR * std::cos(a)),
@@ -201,11 +212,14 @@ bool DialView::create(lv_obj_t* parent, const T9Engine* source, GlyphPainter* pa
         lv_obj_align(c.image, LV_ALIGN_TOP_MID, 0, 2);
         lv_obj_clear_flag(c.image, LV_OBJ_FLAG_CLICKABLE);
 
+        // The 20 px tone font fits every toned syllable in kCandW - 2 on one
+        // line; the fixed height plus LONG_DOT is the no-wrap backstop.
         c.caption = lv_label_create(c.chip);
-        lv_obj_set_style_text_font(c.caption, &lv_font_hanzi_ui_24, 0);
+        lv_obj_set_style_text_font(c.caption, &lv_font_pinyin_tone_20, 0);
         lv_obj_set_style_text_color(c.caption, lv_color_hex(kGrey), 0);
         lv_obj_set_style_text_align(c.caption, LV_TEXT_ALIGN_CENTER, 0);
         lv_obj_set_width(c.caption, kCandW - 2);
+        lv_obj_set_height(c.caption, kCaptionH);
         lv_label_set_long_mode(c.caption, LV_LABEL_LONG_DOT);
         lv_obj_align(c.caption, LV_ALIGN_BOTTOM_MID, 0, -1);
         lv_obj_clear_flag(c.caption, LV_OBJ_FLAG_CLICKABLE);
@@ -595,29 +609,35 @@ void DialView::layoutEcho()
     }
     lv_obj_add_flag(_empty_hint, LV_OBJ_FLAG_HIDDEN);
 
+    // The prefix is internal ASCII; on glass its 'v' reads "ü".
+    char committed_disp[kMaxLen * 2 + 1];
+    pyDisplay(committed, committed_disp, sizeof(committed_disp));
+    char pending_disp[4];
+    pyDisplay(pending, pending_disp, sizeof(pending_disp));
+
     lv_point_t sz;
     int32_t w_committed = 0;
     if (committed[0] != '\0') {
-        lv_text_get_size(&sz, committed, &lv_font_hanzi_pinyin_44, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
+        lv_text_get_size(&sz, committed_disp, &lv_font_hanzi_pinyin_44, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
         w_committed = sz.x;
     }
     int32_t w_pending = 0;
     if (pending[0] != '\0') {
-        lv_text_get_size(&sz, pending, &lv_font_hanzi_pinyin_44, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
+        lv_text_get_size(&sz, pending_disp, &lv_font_hanzi_pinyin_44, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
         w_pending = sz.x;
     }
     const int32_t gap   = (w_committed > 0 && w_pending > 0) ? 4 : 0;
     const int32_t total = w_committed + gap + w_pending;
 
     if (committed[0] != '\0') {
-        lv_label_set_text(_echo, committed);
+        lv_label_set_text(_echo, committed_disp);
         lv_obj_align(_echo, LV_ALIGN_CENTER, static_cast<int16_t>(-total / 2 + w_committed / 2), kEchoY);
         lv_obj_clear_flag(_echo, LV_OBJ_FLAG_HIDDEN);
     } else {
         lv_obj_add_flag(_echo, LV_OBJ_FLAG_HIDDEN);
     }
     if (pending[0] != '\0') {
-        lv_label_set_text(_pending, pending);
+        lv_label_set_text(_pending, pending_disp);
         lv_obj_align(_pending, LV_ALIGN_CENTER, static_cast<int16_t>(total / 2 - w_pending / 2), kEchoY);
         lv_obj_clear_flag(_pending, LV_OBJ_FLAG_HIDDEN);
     } else {
@@ -695,7 +715,9 @@ void DialView::flyBack(char letter)
     lv_obj_t* ghost    = lv_label_create(_root);
     lv_obj_set_style_text_font(ghost, &lv_font_pinyin_latin_32, 0);
     lv_obj_set_style_text_color(ghost, lv_color_hex(kGrey), 0);
-    char text[2] = {letter, '\0'};
+    const char plain[2] = {letter, '\0'};
+    char text[4];
+    pyDisplay(plain, text, sizeof(text));
     lv_label_set_text(ghost, text);
     lv_obj_clear_flag(ghost, LV_OBJ_FLAG_CLICKABLE);
 

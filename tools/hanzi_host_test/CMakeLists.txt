@@ -89,6 +89,7 @@ add_executable(hanzi_sim
     ${FONT_DIR}/lv_font_hanzi_ui_24.c
     ${FONT_DIR}/lv_font_hanzi_pinyin_44.c
     ${FONT_DIR}/lv_font_pinyin_latin_32.c
+    ${FONT_DIR}/lv_font_pinyin_tone_20.c
     ${LVGL_SOURCES}
 )
 

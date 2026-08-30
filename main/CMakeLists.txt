@@ -19,6 +19,8 @@ list(APPEND MY_SRCS "assets/fonts/lv_font_hanzi_ui_24.c")
 # The shared T9 keyboard (apps/common/pinyin_ime) draws its pinyin chips
 # with this small latin subset.
 list(APPEND MY_SRCS "assets/fonts/lv_font_pinyin_latin_32.c")
+# ...and its candidate captions (toned readings) with this one.
+list(APPEND MY_SRCS "assets/fonts/lv_font_pinyin_tone_20.c")
 
 # ---- count the apps: one app means no launcher -----------------------------
 set(KIDS_APP_COUNT 0)

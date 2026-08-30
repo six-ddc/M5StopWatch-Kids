@@ -221,17 +221,19 @@ void PickerView::layout()
     // per-column visibility limit is the chord of the round glass at the
     // column's outer edge.
     lv_point_t sz;
+    char disp[16];  // the budgets must measure what the rows draw: ü, not v
     int32_t w_unit = 0;
     for (uint16_t u = 0; u < _source->unitCount(); u++) {
-        lv_text_get_size(&sz, _source->unitAt(u), &lv_font_hanzi_pinyin_44, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
+        pyDisplay(_source->unitAt(u), disp, sizeof(disp));
+        lv_text_get_size(&sz, disp, &lv_font_hanzi_pinyin_44, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
         w_unit = std::max(w_unit, sz.x);
     }
     int32_t w_suffix = 0;
     for (uint16_t u = 0; u < _source->unitCount(); u++) {
         for (uint16_t s = 0; s < _source->suffixCount(u); s++) {
             const char* text = _source->suffixAt(u, s);
-            lv_text_get_size(&sz, text[0] != '\0' ? text : kEmptySuffixMark, &lv_font_hanzi_pinyin_44, 0, 0,
-                             LV_COORD_MAX, LV_TEXT_FLAG_NONE);
+            pyDisplay(text[0] != '\0' ? text : kEmptySuffixMark, disp, sizeof(disp));
+            lv_text_get_size(&sz, disp, &lv_font_hanzi_pinyin_44, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
             w_suffix = std::max(w_suffix, sz.x);
         }
     }
@@ -576,11 +578,14 @@ void PickerView::assignRow(Wheel& wh, uint8_t slot, int32_t item, bool selected)
         lv_obj_invalidate(row);
         return;
     }
-    const char* text = wh.index == 0 ? _source->unitAt(static_cast<uint16_t>(item))
-                                     : _source->suffixAt(_unit, static_cast<uint16_t>(item));
-    if (text[0] == '\0') {
-        text = kEmptySuffixMark;
+    const char* plain = wh.index == 0 ? _source->unitAt(static_cast<uint16_t>(item))
+                                      : _source->suffixAt(_unit, static_cast<uint16_t>(item));
+    if (plain[0] == '\0') {
+        plain = kEmptySuffixMark;
     }
+    // Units and suffixes are internal ASCII; on glass 'v' reads "ü".
+    char text[16];
+    pyDisplay(plain, text, sizeof(text));
     // Wide content never leaves its column: a selected row that would
     // overflow the measured budget drops to the ring font instead (defensive
     // only -- the budget is measured over the same data, so today fits).

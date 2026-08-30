@@ -8,14 +8,16 @@
 #include <cstdint>
 #include <vector>
 
-// T9 pinyin candidate engine. Pure logic, no LVGL / ESP-IDF headers -- the
+// Pinyin candidate engine. Pure logic, no LVGL / ESP-IDF headers -- the
 // host tests compile this file directly (same discipline as hz_data.h).
 //
-// A digit string is ambiguous twice over: it can spell several letter
-// prefixes (426 -> hao/gao/han/gan/...), and each prefix covers several
-// characters. The engine therefore answers in two layers, mirroring how a
-// phone IME presents them: interpretations() lists the letter prefixes worth
-// offering, query() lists the characters under one of them.
+// Besides the historical T9 layers (interpretations() for digit strings,
+// query() for letter prefixes), the engine decomposes its syllable table for
+// the wheel-picker UI: every syllable splits uniquely into a first unit
+// (zh/ch/sh whole, otherwise the first letter -- bare vowels like "a" count
+// too) and a suffix (possibly empty: the unit itself is the syllable). The
+// enumeration is data-driven, so the picker can never dial a combination
+// with an empty candidate list.
 
 namespace pime {
 
@@ -29,24 +31,33 @@ struct Entry {
     uint16_t id;
 };
 
-// The view talks to this interface only, so any lookup strategy (or app)
-// can back it.
+// The picker view talks to this interface only, so any lookup strategy (or
+// app) can back it. All strings returned here stay valid for the lifetime of
+// the source's current build.
 class CandidateSource {
 public:
     virtual ~CandidateSource() = default;
 
-    // Letter interpretations of a T9 digit string ('2'..'9' only): the
-    // distinct prefixes that lead to at least one syllable, best first (the
-    // one containing the lowest id wins). Returns the total count; writes at
-    // most `cap` pointers. The strings stay valid until the next
-    // interpretations() call on the same object.
-    virtual uint16_t interpretations(const char* digits, const char** out, uint16_t cap) const = 0;
+    // First units in letter order ("a", "b", ..., "ch", ..., "zh"). Only
+    // units that begin at least one syllable exist.
+    virtual uint16_t unitCount() const              = 0;
+    virtual const char* unitAt(uint16_t unit) const = 0;
 
-    // Character candidates of one interpretation string as returned above:
-    // exact-syllable matches first, then longer continuations, both id
-    // ascending, duplicates removed. Skips `offset` results, writes at most
-    // `cap` ids, returns the total match count.
-    virtual uint16_t query(const char* interp, uint16_t* out, uint16_t cap, uint16_t offset) const = 0;
+    // Suffixes of one unit in letter order. The empty string appears when
+    // the unit alone is a complete syllable ("a", "e", "m", "o").
+    virtual uint16_t suffixCount(uint16_t unit) const                  = 0;
+    virtual const char* suffixAt(uint16_t unit, uint16_t suffix) const = 0;
+
+    // Splits a toneless syllable into its (unit, suffix) indices. False when
+    // the syllable is not in the table.
+    virtual bool locate(const char* syllable, uint16_t& unit, uint16_t& suffix) const = 0;
+
+    // Characters whose reading is exactly `syllable`, id ascending (id order
+    // is usage order, see Entry). Skips `offset` results, writes at most
+    // `cap` ids, returns the total match count. Unlike query() this never
+    // includes longer continuations: on the picker a complete syllable is
+    // dialled, and "xia" belongs to the x+ia combination, not to x+i.
+    virtual uint16_t queryExact(const char* syllable, uint16_t* out, uint16_t cap, uint16_t offset) const = 0;
 };
 
 class T9Engine : public CandidateSource {
@@ -65,8 +76,18 @@ public:
         return !_syllables.empty();
     }
 
-    uint16_t interpretations(const char* digits, const char** out, uint16_t cap) const override;
-    uint16_t query(const char* interp, uint16_t* out, uint16_t cap, uint16_t offset) const override;
+    uint16_t unitCount() const override;
+    const char* unitAt(uint16_t unit) const override;
+    uint16_t suffixCount(uint16_t unit) const override;
+    const char* suffixAt(uint16_t unit, uint16_t suffix) const override;
+    bool locate(const char* syllable, uint16_t& unit, uint16_t& suffix) const override;
+    uint16_t queryExact(const char* syllable, uint16_t* out, uint16_t cap, uint16_t offset) const override;
+
+    // The historical T9 digit layers, kept as concrete methods: the letter
+    // interpretations of a digit string, and prefix matching with longer
+    // continuations. Host-tested; no current view uses them.
+    uint16_t interpretations(const char* digits, const char** out, uint16_t cap) const;
+    uint16_t query(const char* interp, uint16_t* out, uint16_t cap, uint16_t offset) const;
 
 private:
     struct Syllable {
@@ -75,9 +96,19 @@ private:
         uint32_t first = 0;  // range into _ids, id-ascending
         uint16_t count = 0;
     };
+    struct Unit {
+        char text[3];
+        uint32_t first = 0;  // range into _unit_syllables
+        uint16_t count = 0;
+    };
 
     std::vector<Syllable> _syllables;  // sorted by text
     std::vector<uint16_t> _ids;
+    // Units sorted by text; each spans a run of _unit_syllables holding
+    // indices into _syllables in text order (so suffixes come out sorted:
+    // dropping a shared prefix preserves lexicographic order).
+    std::vector<Unit> _units;
+    std::vector<uint16_t> _unit_syllables;
     uint16_t _max_id = 0;
 
     // interpretations() result storage; see the interface note on lifetime.

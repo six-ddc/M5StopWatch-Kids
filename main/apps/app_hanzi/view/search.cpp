@@ -23,9 +23,9 @@ void browseGestureCb(lv_event_t* e)
     if (page == nullptr || dev == nullptr) {
         return;
     }
-    // A slide that started on the letter ring is scrubbing for a letter,
-    // never a page switch.
-    if (page->dial().ringActive()) {
+    // A vertical drag on a wheel is scrolling for a row, never a page
+    // switch.
+    if (page->picker().scrollActive()) {
         return;
     }
     const lv_dir_t dir = lv_indev_get_gesture_dir(dev);
@@ -136,8 +136,10 @@ bool SearchPage::create(lv_obj_t* parent, const hz::DataSource* source, const pi
     }
     _on_browse = std::move(on_browse);
     _painter   = std::make_unique<HanziPainter>();
-    if (!_painter->init(source, 52) || !_dial.create(parent, engine, _painter.get())) {
-        _dial.destroy();
+    // 68 == the picker's glyph box; the painter only needs it for scratch
+    // sizing, so an over-estimate would merely waste a few floats.
+    if (!_painter->init(source, 68) || !_picker.create(parent, engine, _painter.get())) {
+        _picker.destroy();
         _painter.reset();
         return false;
     }
@@ -149,8 +151,8 @@ bool SearchPage::create(lv_obj_t* parent, const hz::DataSource* source, const pi
         // flag must be cleared on the root: LVGL delivers a gesture to the
         // first ancestor of the pressed object without it, or drops the
         // event entirely when the walk runs past the screen.
-        lv_obj_clear_flag(_dial.root(), LV_OBJ_FLAG_GESTURE_BUBBLE);
-        lv_obj_add_event_cb(_dial.root(), browseGestureCb, LV_EVENT_GESTURE, this);
+        lv_obj_clear_flag(_picker.root(), LV_OBJ_FLAG_GESTURE_BUBBLE);
+        lv_obj_add_event_cb(_picker.root(), browseGestureCb, LV_EVENT_GESTURE, this);
     }
     return true;
 }
@@ -166,28 +168,33 @@ void SearchPage::handleBrowseClicked()
 
 void SearchPage::destroy()
 {
-    _dial.destroy();
+    _picker.destroy();
     _painter.reset();
 }
 
 void SearchPage::setHidden(bool hidden)
 {
-    _dial.setHidden(hidden);
+    _picker.setHidden(hidden);
+}
+
+void SearchPage::showCharacter(uint16_t order)
+{
+    _picker.showCharacter(order);
 }
 
 void SearchPage::nextCandidatePage()
 {
-    _dial.nextCandidatePage();
+    _picker.candidateStep(1);
 }
 
 void SearchPage::previousCandidatePage()
 {
-    _dial.previousCandidatePage();
+    _picker.candidateStep(-1);
 }
 
 bool SearchPage::takePick(uint16_t& order, char* reading, size_t cap)
 {
-    return _dial.takePick(order, reading, cap);
+    return _picker.takePick(order, reading, cap);
 }
 
 }  // namespace view

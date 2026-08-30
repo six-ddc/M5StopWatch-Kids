@@ -77,7 +77,7 @@ add_executable(hanzi_sim
     ${VIEW_DIR}/browse.cpp
     ${VIEW_DIR}/learn.cpp
     ${VIEW_DIR}/search.cpp
-    ${PIME_DIR}/dial_view.cpp
+    ${PIME_DIR}/picker_view.cpp
     ${PIME_DIR}/t9_engine.cpp
     ${PIME_DIR}/py_normalize.cpp
     ${ENGINE_DIR}/hz_data.cpp

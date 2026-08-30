@@ -28,12 +28,24 @@ bool validSyllable(const char* s, size_t max_len)
     return true;
 }
 
+// Length of the first unit of a syllable: zh/ch/sh are whole units, any
+// other syllable contributes its first letter (bare vowels included).
+size_t unitLen(const char* syllable)
+{
+    if ((syllable[0] == 'z' || syllable[0] == 'c' || syllable[0] == 's') && syllable[1] == 'h') {
+        return 2;
+    }
+    return 1;
+}
+
 }  // namespace
 
 void T9Engine::clear()
 {
     _syllables.clear();
     _ids.clear();
+    _units.clear();
+    _unit_syllables.clear();
     _seen.clear();
     _max_id = 0;
 }
@@ -85,7 +97,113 @@ bool T9Engine::build(const Entry* entries, size_t count)
         _max_id = std::max(_max_id, item.id);
     }
     _seen.assign((static_cast<size_t>(_max_id) + 8) / 8, 0);
+
+    // Unit table. "c" and "ch" interleave in the text-sorted syllable list
+    // (ca < cha < ci), so group via a stable sort on unit text: syllable
+    // indices stay ascending within a unit, which keeps suffixes sorted.
+    std::vector<uint16_t> order(_syllables.size());
+    for (size_t i = 0; i < order.size(); ++i) {
+        order[i] = static_cast<uint16_t>(i);
+    }
+    auto unitText = [this](uint16_t idx, char(&buf)[3]) {
+        const char* text = _syllables[idx].text;
+        const size_t ul  = unitLen(text);
+        std::memcpy(buf, text, ul);
+        buf[ul] = '\0';
+    };
+    std::stable_sort(order.begin(), order.end(), [&](uint16_t a, uint16_t b) {
+        char ua[3], ub[3];
+        unitText(a, ua);
+        unitText(b, ub);
+        return std::strcmp(ua, ub) < 0;
+    });
+    for (uint16_t idx : order) {
+        const char* text = _syllables[idx].text;
+        const size_t ul  = unitLen(text);
+        if (_units.empty() || std::strlen(_units.back().text) != ul ||
+            std::strncmp(_units.back().text, text, ul) != 0) {
+            Unit unit{};
+            std::memcpy(unit.text, text, ul);
+            unit.first = static_cast<uint32_t>(_unit_syllables.size());
+            _units.push_back(unit);
+        }
+        _units.back().count++;
+        _unit_syllables.push_back(idx);
+    }
     return true;
+}
+
+uint16_t T9Engine::unitCount() const
+{
+    return static_cast<uint16_t>(_units.size());
+}
+
+const char* T9Engine::unitAt(uint16_t unit) const
+{
+    return unit < _units.size() ? _units[unit].text : "";
+}
+
+uint16_t T9Engine::suffixCount(uint16_t unit) const
+{
+    return unit < _units.size() ? _units[unit].count : 0;
+}
+
+const char* T9Engine::suffixAt(uint16_t unit, uint16_t suffix) const
+{
+    if (unit >= _units.size() || suffix >= _units[unit].count) {
+        return "";
+    }
+    const char* text = _syllables[_unit_syllables[_units[unit].first + suffix]].text;
+    return text + unitLen(text);
+}
+
+bool T9Engine::locate(const char* syllable, uint16_t& unit, uint16_t& suffix) const
+{
+    if (!validSyllable(syllable, kMaxSyllable)) {
+        return false;
+    }
+    for (uint16_t u = 0; u < _units.size(); ++u) {
+        const size_t ul = std::strlen(_units[u].text);
+        if (std::strncmp(_units[u].text, syllable, ul) != 0 || unitLen(syllable) != ul) {
+            continue;
+        }
+        for (uint16_t s = 0; s < _units[u].count; ++s) {
+            if (std::strcmp(suffixAt(u, s), syllable + ul) == 0) {
+                unit   = u;
+                suffix = s;
+                return true;
+            }
+        }
+        return false;
+    }
+    return false;
+}
+
+uint16_t T9Engine::queryExact(const char* syllable, uint16_t* out, uint16_t cap, uint16_t offset) const
+{
+    if (!validSyllable(syllable, kMaxSyllable)) {
+        return 0;
+    }
+    // _syllables is text-sorted; binary search for the exact entry.
+    size_t lo = 0, hi = _syllables.size();
+    while (lo < hi) {
+        const size_t mid = (lo + hi) / 2;
+        if (std::strcmp(_syllables[mid].text, syllable) < 0) {
+            lo = mid + 1;
+        } else {
+            hi = mid;
+        }
+    }
+    if (lo >= _syllables.size() || std::strcmp(_syllables[lo].text, syllable) != 0) {
+        return 0;
+    }
+    const Syllable& syl = _syllables[lo];
+    if (out != nullptr) {
+        for (uint16_t i = offset; i < syl.count && static_cast<uint32_t>(i - offset) < cap; ++i) {
+            out[i - offset] = _ids[syl.first + i];
+        }
+    }
+    return syl.count;
 }
 
 uint16_t T9Engine::interpretations(const char* digits, const char** out, uint16_t cap) const

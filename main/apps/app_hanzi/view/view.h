@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-#include <apps/common/pinyin_ime/dial_view.h>
+#include <apps/common/pinyin_ime/picker_view.h>
 #include <hal/hal.h>
 #include <cstdint>
 #include <functional>
@@ -143,11 +143,11 @@ private:
     char _pinyin_override[16] = {};
 };
 
-// Pinyin lookup, the app's landing page: the reusable alphabet-dial widget
-// wired to the stroke engine. The page itself is thin glue -- it owns the
-// GlyphPainter that renders candidates with hz::Compositor, wires the
+// Pinyin lookup, the app's landing page: the reusable three-wheel syllable
+// picker wired to the stroke engine. The page itself is thin glue -- it owns
+// the GlyphPainter that renders candidates with hz::Compositor, wires the
 // horizontal-swipe gesture that leads to the textbook browse mode, and
-// forwards everything else to pime::DialView.
+// forwards everything else to pime::PickerView.
 class SearchPage {
 public:
     using BrowseCallback = std::function<void()>;
@@ -165,23 +165,29 @@ public:
     void handleBrowseClicked();
     void setHidden(bool hidden);
 
-    // Physical-key routing; call with the LVGL lock held.
+    // Dials the wheels onto this character's syllable, so opening the page
+    // resumes at the last-learned character.
+    void showCharacter(uint16_t order);
+
+    // Physical-key routing (one detent down/up on the character wheel);
+    // call with the LVGL lock held.
     void nextCandidatePage();
     void previousCandidatePage();
-    // One-shot: a candidate was tapped; `order` is its teaching-order index
-    // and `reading` (optional) the toned reading it was picked under.
+    // One-shot: the selection band was tapped; `order` is the dialled
+    // character and `reading` (optional) the toned reading it was picked
+    // under.
     bool takePick(uint16_t& order, char* reading = nullptr, size_t cap = 0);
 
     // The host sim drives input through this.
-    pime::DialView& dial()
+    pime::PickerView& picker()
     {
-        return _dial;
+        return _picker;
     }
 
 private:
     class HanziPainter;
     std::unique_ptr<HanziPainter> _painter;
-    pime::DialView _dial;
+    pime::PickerView _picker;
     BrowseCallback _on_browse;
 };
 

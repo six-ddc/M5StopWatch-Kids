@@ -225,6 +225,40 @@ void swipeHorizontal(int x0, int x1, int y)
     pump(33, static_cast<int>(g_touch_frames.size()) + 5);
 }
 
+// Vertical drag on one wheel column: press, move in `steps` equal frames
+// (one indev read each, 33 ms apart, so the picker sees a real velocity),
+// optionally hold still for `hold` frames (a paused finger sheds its
+// velocity -- that is how a precise one-detent drag differs from a fling),
+// then release. `settle_frames` lets the snap animation finish -- pass a
+// small number to leave it mid-flight for a screenshot.
+void dragVertical(int x, int y0, int y1, int steps, int settle_frames = 40, int hold = 0)
+{
+    g_touch_frames.clear();
+    g_touch_index = 0;
+    for (int i = 0; i <= steps; i++) {
+        const int y = y0 + (y1 - y0) * i / steps;
+        g_touch_frames.push_back({{static_cast<int32_t>(x), static_cast<int32_t>(y)}, true});
+    }
+    for (int i = 0; i < hold; i++) {
+        g_touch_frames.push_back({{static_cast<int32_t>(x), static_cast<int32_t>(y1)}, true});
+    }
+    g_touch_frames.push_back({{static_cast<int32_t>(x), static_cast<int32_t>(y1)}, false});
+    pump(33, static_cast<int>(g_touch_frames.size()) + settle_frames);
+}
+
+// A light tap: three pressed frames on one point, then release.
+void tapAt(int x, int y, int settle_frames = 30)
+{
+    g_touch_frames.clear();
+    g_touch_index      = 0;
+    const lv_point_t p = {static_cast<int32_t>(x), static_cast<int32_t>(y)};
+    for (int i = 0; i < 3; i++) {
+        g_touch_frames.push_back({p, true});
+    }
+    g_touch_frames.push_back({p, false});
+    pump(33, 4 + settle_frames);
+}
+
 }  // namespace
 
 int main(int argc, char** argv)
@@ -335,7 +369,7 @@ int main(int argc, char** argv)
         }
     }
 
-    // --- Search page (alphabet-dial pinyin lookup) ---
+    // --- Search page (three-wheel syllable picker) ---
     learn.setHidden(true);
 
     // Build the engine exactly the way AppHanzi::buildSearchIndex does:
@@ -376,10 +410,47 @@ int main(int argc, char** argv)
         return 1;
     }
     pump(33, 3);
-    checkedScreenshot(out_dir, "dial_00");  // empty state, full bright ring
 
-    // A centre-area swipe (never entering the ring band) must still switch
-    // modes.
+    pime::PickerView& picker = search.picker();
+    auto expectSyllable      = [&](const char* want, const char* what) {
+        const char* got = picker.syllable();
+        if (std::strcmp(got, want) != 0) {
+            ++g_failures;
+            std::printf("  %-22s syllable \"%s\", want \"%s\"\n", what, got, want);
+        } else {
+            std::printf("  %-22s ok (syllable \"%s\")\n", what, got);
+        }
+    };
+    auto expectSettledAt = [&](int want_index, const char* what) {
+        const float offset = picker.wheelOffset(2);
+        const bool settled = picker.wheelSettled() && std::fabs(offset - std::round(offset)) < 0.001f;
+        if (!settled || picker.candidateIndex() != want_index) {
+            ++g_failures;
+            std::printf("  %-22s offset %.3f index %u, want settled at %d\n", what, offset, picker.candidateIndex(),
+                        want_index);
+        } else {
+            std::printf("  %-22s ok (settled at %d)\n", what, want_index);
+        }
+    };
+    // Screen-absolute x of a wheel column.
+    auto colX = [&](uint8_t wheel) { return 233 + picker.wheelX(wheel); };
+
+    // Default state: no empty state on a wheel picker -- it opens dialled to
+    // "hao" with the best-known character in the band.
+    expectSyllable("hao", "default state");
+    {
+        uint16_t first = 0;
+        engine.queryExact("hao", &first, 1, 0);
+        std::printf("  default candidate       order %u reading %s\n", first, src.pinyinAt(first));
+        if (picker.candidateIndex() != 0) {
+            ++g_failures;
+            std::printf("  default candidate       INDEX %u, want 0\n", picker.candidateIndex());
+        }
+    }
+    checkedScreenshot(out_dir, "picker_default");
+
+    // A horizontal swipe (mostly-horizontal from the first move) must still
+    // switch modes: the wheels only claim vertical drags.
     swipeHorizontal(100, 360, 300);
     if (!to_browse_fired) {
         ++g_failures;
@@ -387,117 +458,182 @@ int main(int argc, char** argv)
     } else {
         std::printf("  search swipe            ok\n");
     }
+    expectSyllable("hao", "swipe leaves wheels");
 
-    // Screen position of a ring letter, optionally a fraction of a slot off.
-    auto ringPoint = [](char letter, float slots_off) {
-        const float deg = -90.0f + ((letter - 'a') + slots_off) * (360.0f / 26.0f);
-        const float rad = deg * 3.14159265f / 180.0f;
-        lv_point_t p;
-        p.x = static_cast<int32_t>(233 + 203 * std::cos(rad));
-        p.y = static_cast<int32_t>(233 + 203 * std::sin(rad));
-        return p;
-    };
-    auto ringTap = [&](char letter, float slots_off) {
-        const lv_point_t p = ringPoint(letter, slots_off);
-        g_touch_frames.clear();
-        g_touch_index = 0;
-        for (int i = 0; i < 3; i++) g_touch_frames.push_back({p, true});
-        g_touch_frames.push_back({p, false});
-        pump(33, 8);
-    };
-    auto expectPrefix = [&](const char* want, const char* what) {
-        const char* got = search.dial().prefix();
-        if (std::strcmp(got, want) != 0) {
-            ++g_failures;
-            std::printf("  %-22s prefix \"%s\", want \"%s\"\n", what, got, want);
-        } else {
-            std::printf("  %-22s ok (prefix \"%s\")\n", what, got);
-        }
-    };
+    // Unit-wheel linkage through the real indev: one detent down goes h->g,
+    // and the suffix "ao" survives because g+ao is legal (iOS date-picker
+    // semantics). The character wheel returns to the best-known first.
+    dragVertical(colX(0), 260, 260 + 88, 12, 40, /*hold=*/10);
+    expectSyllable("gao", "unit h->g keeps ao");
+    expectSettledAt(0, "unit change resets");
+    dragVertical(colX(0), 260 + 88, 260, 12, 40, /*hold=*/10);
+    expectSyllable("hao", "unit g->h back");
 
-    // Through the real indev: a press on 'i' -- which can never start a
-    // syllable -- must snap to the neighbouring bright 'h'.
-    ringTap('i', 0.0f);
-    expectPrefix("h", "ring snap tap");
-
-    search.dial().typeLetter('a');
-    search.dial().typeLetter('o');
-    pump(33, 3);
-    expectPrefix("hao", "direct typing");
-    checkedScreenshot(out_dir, "dial_hao");
-
-    search.nextCandidatePage();
-    pump(33, 2);
-    checkedScreenshot(out_dir, "dial_page2");
-
-    // Recall gesture: tapping the last-typed letter takes it back.
-    ringTap('o', 0.0f);
-    expectPrefix("ha", "recall retap");
-    pump(33, 8);  // let the fly-back ghost land before the screenshot
-    checkedScreenshot(out_dir, "dial_recall");
-
-    // Scrubbing along the ring (a curved, mostly-horizontal drag) must not
-    // fire the mode-switch gesture; releasing on 'o' commits it.
+    // Fling the character wheel: inertia must land on a whole detent.
+    dragVertical(colX(2), 320, 160, 4);
     {
-        const bool before = to_browse_fired;
-        g_touch_frames.clear();
-        g_touch_index = 0;
-        for (int step = 0; step <= 10; step++) {
-            const float from = 'k' - 'a';
-            const float to   = 'o' - 'a';
-            const float slot = from + (to - from) * step / 10.0f;
-            const float deg  = -90.0f + slot * (360.0f / 26.0f);
-            const float rad  = deg * 3.14159265f / 180.0f;
-            lv_point_t p;
-            p.x = static_cast<int32_t>(233 + 203 * std::cos(rad));
-            p.y = static_cast<int32_t>(233 + 203 * std::sin(rad));
-            g_touch_frames.push_back({p, true});
-        }
-        // Hold at 'o' first: the armed letter must preview greyed behind the
-        // echo (the finger hides the ring, the echo stays visible).
-        pump(33, 14);
-        checkedScreenshot(out_dir, "dial_preview");
-        g_touch_frames.push_back({g_touch_frames.back().point, false});
-        pump(33, 4);
-        expectPrefix("hao", "ring scrub commit");
-        if (to_browse_fired != before) {
+        const float offset = picker.wheelOffset(2);
+        if (!picker.wheelSettled() || std::fabs(offset - std::round(offset)) > 0.001f || offset < 1.0f) {
             ++g_failures;
-            std::printf("  ring scrub              GESTURE FIRED (must be suppressed)\n");
+            std::printf("  fling snap              offset %.3f (want whole detent > 0)\n", offset);
         } else {
-            std::printf("  ring scrub              gesture suppressed ok\n");
+            std::printf("  fling snap              ok (landed on %d)\n", static_cast<int>(offset));
         }
     }
 
-    // Reading pass-through: the picked candidate surfaces the toned reading
-    // it was shown under, which the learn page then displays.
+    // A light tap on the row below the band scrolls it into the band.
     {
-        search.dial().handleCandidate(1);
+        const int before = picker.candidateIndex();
+        tapAt(colX(2), 233 + 85);
+        expectSettledAt(before + 1, "tap row below");
+    }
+
+    // Physical keys: B one detent down, A back up; A at the top answers
+    // with a bounce, not a move.
+    {
+        const int before = picker.candidateIndex();
+        search.nextCandidatePage();
+        pump(33, 30);
+        expectSettledAt(before + 1, "key B steps down");
+        for (int i = 0; i <= before + 1; i++) {
+            search.previousCandidatePage();
+            pump(33, 30);
+        }
+        expectSettledAt(0, "key A steps to top");
+        search.previousCandidatePage();
+        pump(33, 30);
+        expectSettledAt(0, "key A at top bounces");
+    }
+
+    // Reading pass-through: tapping the band confirms the dialled character
+    // and surfaces the toned reading it was picked under, which the learn
+    // page then displays.
+    {
+        tapAt(colX(2), 233, 10);
         uint16_t order = 0;
         char reading[16];
         if (!search.takePick(order, reading, sizeof(reading))) {
             ++g_failures;
-            std::printf("  candidate pick          NOT DELIVERED\n");
+            std::printf("  band tap pick           NOT DELIVERED\n");
         } else {
-            std::printf("  candidate pick          order %u reading %s\n", order, reading);
-            if (reading[0] == '\0') {
+            char plain[16];
+            std::printf("  band tap pick           order %u reading %s\n", order, reading);
+            if (pime::pyNormalize(reading, plain, sizeof(plain)) == 0 || std::strcmp(plain, picker.syllable()) != 0) {
                 ++g_failures;
-                std::printf("  picked reading          EMPTY\n");
+                std::printf("  picked reading          \"%s\" does not match syllable \"%s\"\n", reading,
+                            picker.syllable());
             }
             search.setHidden(true);
             learn.setHidden(false);
             learn.showCharacter(order, reading);
             pump(33, 3);
-            checkedScreenshot(out_dir, "dial_pick_learn");
+            checkedScreenshot(out_dir, "picker_pick_learn");
             learn.setHidden(true);
             search.setHidden(false);
             pump(33, 2);
         }
     }
 
-    // Echo long-press clears everything back to the empty state.
-    search.dial().handleEchoLong();
-    pump(33, 8);
-    expectPrefix("", "echo clear");
+    // Bare-vowel syllable: the suffix wheel offers the quiet empty-suffix
+    // mark, and the whole line still confirms to a real character.
+    {
+        if (!picker.selectSyllable("a")) {
+            ++g_failures;
+            std::printf("  bare vowel a            selectSyllable FAILED\n");
+        }
+        pump(33, 3);
+        expectSyllable("a", "bare vowel a");
+        uint16_t u = 0, s = 0;
+        if (!engine.locate("a", u, s) || engine.suffixAt(u, s)[0] != '\0') {
+            ++g_failures;
+            std::printf("  bare vowel a            suffix not the empty item\n");
+        }
+        checkedScreenshot(out_dir, "picker_a");
+        tapAt(colX(2), 233, 10);
+        uint16_t order   = 0;
+        char reading[16] = {};
+        char plain[16];
+        if (!search.takePick(order, reading, sizeof(reading)) ||
+            pime::pyNormalize(reading, plain, sizeof(plain)) == 0 || std::strcmp(plain, "a") != 0) {
+            ++g_failures;
+            std::printf("  bare vowel pick         order %u reading \"%s\" (want an 'a' reading)\n", order, reading);
+        } else {
+            std::printf("  bare vowel pick         order %u reading %s\n", order, reading);
+        }
+    }
+
+    // Longest suffix: x + iang. The wheels must keep every column inside
+    // its measured budget (the off-panel check on the shot is the proof).
+    picker.selectSyllable("xiang");
+    pump(33, 3);
+    expectSyllable("xiang", "long suffix xiang");
+    checkedScreenshot(out_dir, "picker_xiang");
+
+    // Suffix fallback: one detent down from x lands on w, which has no
+    // "iang" -- the wheel snaps to the nearest suffix in letter order.
+    dragVertical(colX(0), 260, 260 + 88, 12, 40, /*hold=*/10);
+    expectSyllable("wo", "unit x->w nearest");
+
+    // Big candidate list: shi. A hard fling coasts with inertia -- capture
+    // it mid-flight, then let it settle on a detent.
+    picker.selectSyllable("shi");
+    pump(33, 3);
+    {
+        const uint16_t total = engine.queryExact("shi", nullptr, 0, 0);
+        std::printf("  shi candidates          %u\n", total);
+        if (total < 30) {
+            ++g_failures;
+            std::printf("  shi candidates          suspiciously few\n");
+        }
+        dragVertical(colX(2), 340, 130, 3, /*settle_frames=*/3, 0);
+        checkedScreenshot(out_dir, "picker_shi_scroll");
+        pump(33, 40);
+        const float offset = picker.wheelOffset(2);
+        if (!picker.wheelSettled() || std::fabs(offset - std::round(offset)) > 0.001f || offset < 2.0f) {
+            ++g_failures;
+            std::printf("  shi fling               offset %.3f (want whole detent, several rows in)\n", offset);
+        } else {
+            std::printf("  shi fling               ok (landed on %d of %u)\n", static_cast<int>(offset), total);
+        }
+    }
+
+    // Degenerate wheel: a syllable with a single candidate must not coast,
+    // must not rubber-hold, and shows no phantom fade rows.
+    {
+        char lonely[8] = {};
+        for (uint16_t u = 0; u < engine.unitCount() && lonely[0] == '\0'; u++) {
+            for (uint16_t s = 0; s < engine.suffixCount(u); s++) {
+                char syl[8];
+                std::snprintf(syl, sizeof(syl), "%s%s", engine.unitAt(u), engine.suffixAt(u, s));
+                if (engine.queryExact(syl, nullptr, 0, 0) == 1) {
+                    std::memcpy(lonely, syl, sizeof(lonely));
+                    break;
+                }
+            }
+        }
+        if (lonely[0] == '\0') {
+            std::printf("  degenerate wheel        (no single-candidate syllable in this data)\n");
+        } else {
+            picker.selectSyllable(lonely);
+            pump(33, 3);
+            std::printf("  degenerate syllable     %s\n", lonely);
+            checkedScreenshot(out_dir, "picker_single");
+            dragVertical(colX(2), 320, 160, 4);
+            expectSettledAt(0, "degenerate no coast");
+        }
+    }
+
+    // NVS-resume path: showCharacter dials the wheels onto that character's
+    // syllable and its exact list position.
+    {
+        uint16_t fourth = 0;
+        engine.queryExact("shi", &fourth, 1, 3);
+        search.showCharacter(fourth);
+        pump(33, 3);
+        expectSyllable("shi", "resume syllable");
+        expectSettledAt(3, "resume position");
+        checkedScreenshot(out_dir, "picker_resume");
+    }
 
     if (g_failures == 0) {
         std::printf("RESULT: OK\n");

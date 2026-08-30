@@ -112,6 +112,11 @@ void AppHanzi::onOpen()
 
     _learn->showCharacter(start);
     _browse->focusCharacter(start);
+    if (start > 0) {
+        // Dial the picker onto the last-learned character; without a record
+        // it keeps its own default syllable.
+        _search->showCharacter(start);
+    }
     // Search is the landing page: a child usually arrives knowing the sound
     // of a character; the textbook browse mode is one corner tap away.
     showSearch();

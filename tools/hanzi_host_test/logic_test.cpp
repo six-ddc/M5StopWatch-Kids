@@ -271,6 +271,81 @@ int main()
               "query(" + r.syllable + ") misses char order " + std::to_string(r.order));
     }
 
+    // -- picker enumeration: units and suffixes tile the syllable table ----
+    // Every syllable decomposes into exactly one (unit, suffix) pair; every
+    // enumerated pair composes back into a table syllable; the two sets are
+    // in bijection. This is what guarantees the three wheels can never dial
+    // an empty candidate column.
+    {
+        auto expectedUnit = [](const std::string& syl) {
+            if (syl.size() >= 2 && (syl[0] == 'z' || syl[0] == 'c' || syl[0] == 's') && syl[1] == 'h') {
+                return syl.substr(0, 2);
+            }
+            return syl.substr(0, 1);
+        };
+
+        std::set<std::string> composed;
+        std::string prev_unit;
+        for (uint16_t u = 0; u < engine.unitCount(); ++u) {
+            const std::string unit = engine.unitAt(u);
+            check(!unit.empty() && (prev_unit.empty() || prev_unit < unit), "units not sorted/unique at " + unit);
+            prev_unit = unit;
+            std::string prev_suffix;
+            bool first = true;
+            for (uint16_t s = 0; s < engine.suffixCount(u); ++s) {
+                const std::string suffix = engine.suffixAt(u, s);
+                check(first || prev_suffix < suffix, "suffixes not sorted/unique under " + unit);
+                first                 = false;
+                prev_suffix           = suffix;
+                const std::string syl = unit + suffix;
+                check(ref.by_syllable.count(syl) == 1, "composed syllable not in table: " + syl);
+                check(expectedUnit(syl) == unit, "composition crosses unit rule: " + syl);
+                check(composed.insert(syl).second, "syllable enumerated twice: " + syl);
+                if (suffix.empty()) {
+                    check(ref.by_syllable.count(unit) == 1, "empty suffix but bare unit not a syllable: " + unit);
+                }
+
+                // queryExact must equal the reference's exact list, and the
+                // combination can never be empty.
+                const std::vector<uint16_t>& want = ref.by_syllable.at(syl);
+                const uint16_t total              = engine.queryExact(syl.c_str(), nullptr, 0, 0);
+                check(total == want.size() && total > 0, "queryExact(" + syl + ") count diverges");
+                std::vector<uint16_t> got(total);
+                engine.queryExact(syl.c_str(), got.data(), total, 0);
+                check(got == want, "queryExact(" + syl + ") ids diverge");
+                // ... and paged slices reassemble the same list.
+                std::vector<uint16_t> paged;
+                uint16_t page[3];
+                for (uint16_t off = 0; off < total; off += 3) {
+                    check(engine.queryExact(syl.c_str(), page, 3, off) == total,
+                          "queryExact paged total drifts for " + syl);
+                    for (uint16_t i = 0; i < std::min<uint16_t>(3, total - off); ++i) {
+                        paged.push_back(page[i]);
+                    }
+                }
+                check(paged == got, "queryExact paging reassembly diverges for " + syl);
+
+                // locate() round-trips the composition.
+                uint16_t lu = 0, ls = 0;
+                check(engine.locate(syl.c_str(), lu, ls) && lu == u && ls == s,
+                      "locate(" + syl + ") does not round-trip");
+            }
+        }
+        check(composed.size() == ref.by_syllable.size(),
+              "enumeration misses syllables: " + std::to_string(composed.size()) + " of " +
+                  std::to_string(ref.by_syllable.size()));
+        // Zero-initial vowels ride the unit wheel with an empty suffix.
+        for (const char* bare : {"a", "e", "o"}) {
+            uint16_t u = 0, s = 0;
+            check(engine.locate(bare, u, s) && engine.suffixAt(u, s)[0] == '\0',
+                  std::string("bare vowel missing its empty suffix: ") + bare);
+        }
+        check(engine.queryExact("zzz", nullptr, 0, 0) == 0, "queryExact accepts a non-syllable");
+        uint16_t u = 0, s = 0;
+        check(!engine.locate("zzz", u, s), "locate accepts a non-syllable");
+        std::printf("picker enumeration: %u units, %zu combinations\n", engine.unitCount(), composed.size());
+    }
+
     // -- differential vs the reference on every reachable digit string -----
     std::set<std::string> probes;
     for (const auto& [syl, _] : ref.by_syllable) {

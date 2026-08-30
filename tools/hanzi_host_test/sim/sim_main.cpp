@@ -595,6 +595,29 @@ int main(int argc, char** argv)
         } else {
             std::printf("  shi fling               ok (landed on %d of %u)\n", static_cast<int>(offset), total);
         }
+
+        // Regression: stabbing a moving wheel is a catch, never a confirm.
+        // Fling again, then tap the band while the snap animation is still
+        // in flight -- the wheel must stop and settle, and no pick may fire.
+        dragVertical(colX(2), 130, 340, 3, /*settle_frames=*/2);
+        if (picker.wheelSettled()) {
+            ++g_failures;
+            std::printf("  catch setup             wheel already settled (fling too short)\n");
+        }
+        tapAt(colX(2), 233, 40);
+        uint16_t order = 0;
+        if (search.takePick(order)) {
+            ++g_failures;
+            std::printf("  catch tap               CONFIRMED A PICK (order %u), must only stop the wheel\n", order);
+        } else {
+            const float caught = picker.wheelOffset(2);
+            if (!picker.wheelSettled() || std::fabs(caught - std::round(caught)) > 0.001f) {
+                ++g_failures;
+                std::printf("  catch tap               offset %.3f (want stopped on a whole detent)\n", caught);
+            } else {
+                std::printf("  catch tap               ok (no pick, stopped on %d)\n", static_cast<int>(caught));
+            }
+        }
     }
 
     // Degenerate wheel: a syllable with a single candidate must not coast,

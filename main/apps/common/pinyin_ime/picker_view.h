@@ -73,11 +73,12 @@ public:
     {
         return _root;
     }
-    // True while a press is steering a wheel; hosts should ignore their own
-    // page gestures then (a vertical drag is wheel scrolling, not a swipe).
+    // True while a press is steering a wheel (a grab of a moving wheel
+    // included); hosts should ignore their own page gestures then (a
+    // vertical drag is wheel scrolling, not a swipe).
     bool scrollActive() const
     {
-        return _drag_wheel >= 0 && _drag_steering;
+        return _drag_wheel >= 0 && (_drag_steering || _press_caught);
     }
 
     // Invoked from the LVGL event callbacks (and driven directly by the host
@@ -113,18 +114,21 @@ private:
         uint8_t index           = 0;
         lv_obj_t* rows[kSlots]  = {};
         int32_t content[kSlots] = {};  // item index shown by each slot, -1 empty
-        int32_t text_w[kSlots]  = {};  // measured selected-size width, for fit
-        uint16_t count          = 0;
-        float offset            = 0.0f;  // fractional detent, unclamped while dragged
-        float reveal            = 1.0f;  // rebuild fade-in factor
-        int16_t x               = 0;     // column centre, LV_ALIGN_CENTER offset
-        int16_t width           = 0;     // selected-size content budget
-        int16_t y_lim           = 0;     // chord-derived visibility limit
-        int32_t detent          = 0;     // last haptic detent, for crossing ticks
-        int32_t travel_from     = 0;     // detent when the gesture began
-        bool snapping           = false;
-        bool bouncing           = false;
-        float bounce_home       = 0.0f;
+        // Rendered tier of each slot: true = selected size (44 px font /
+        // 68 px glyph), false = ring size (32 px / 48 px). Rows swap tiers
+        // as they cross the band edge; no transforms are involved.
+        bool selected_tier[kSlots] = {};
+        uint16_t count             = 0;
+        float offset               = 0.0f;  // fractional detent, unclamped while dragged
+        float reveal               = 1.0f;  // rebuild fade-in factor
+        int16_t x                  = 0;     // column centre, LV_ALIGN_CENTER offset
+        int16_t width              = 0;     // selected-size content budget
+        int16_t y_lim              = 0;     // chord-derived visibility limit
+        int32_t detent             = 0;     // last haptic detent, for crossing ticks
+        int32_t travel_from        = 0;     // detent when the gesture began
+        bool snapping              = false;
+        bool bouncing              = false;
+        float bounce_home          = 0.0f;
     };
 
     bool allocate();
@@ -132,8 +136,8 @@ private:
     void layout();  // measures the columns and places the chrome
 
     void rebuildWheel(uint8_t w, uint16_t count, float offset, bool animate);
-    void refreshWheel(uint8_t w);
-    void assignRow(Wheel& wh, uint8_t slot, int32_t item);
+    void refreshWheel(uint8_t w, bool in_motion = false);
+    void assignRow(Wheel& wh, uint8_t slot, int32_t item, bool selected);
     void settleWheel(uint8_t w, bool from_motion);
     void setUnit(uint16_t unit);
     void setSuffix(uint16_t suffix);
@@ -173,12 +177,15 @@ private:
     // gesture state
     int8_t _drag_wheel  = -1;
     bool _drag_steering = false;  // finger moved beyond the tap slop
+    bool _press_caught  = false;  // press landed on a moving wheel (a catch):
+                                  // the release never counts as a tap
     int32_t _press_x = 0, _press_y = 0;
-    float _press_offset = 0.0f;
-    int32_t _last_y     = 0;
-    uint32_t _last_ms   = 0;
-    uint32_t _press_ms  = 0;
-    float _velocity     = 0.0f;  // px per ms, filtered
+    float _press_offset    = 0.0f;
+    int32_t _last_y        = 0;
+    uint32_t _last_ms      = 0;
+    uint32_t _press_ms     = 0;
+    float _velocity        = 0.0f;  // px per ms, filtered
+    uint32_t _last_tick_ms = 0;     // haptic tick rate limiting
 
     bool _pick_pending     = false;
     uint16_t _pick_id      = 0;

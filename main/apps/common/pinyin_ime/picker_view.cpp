@@ -33,20 +33,34 @@ constexpr int16_t kBandH      = 112;
 constexpr float kLift         = 0.0f;   // caption sits beside the glyph; no lift
 constexpr int16_t kGap        = 20;     // gap between columns
 constexpr int16_t kCaptionGap = 10;     // toned reading sits right of the glyph
-constexpr int16_t kTextHalf   = 29;     // half extent of a 44 px row
 constexpr float kAlphaMax     = 1.55f;  // rows past ~89 degrees never draw
+
+// Row rendering is two discrete tiers, not a continuous scale: LVGL renders
+// any transformed widget through an intermediate layer (allocate, draw,
+// blend), and ~20 such rows per frame is exactly the jank the S3 showed.
+// The selected row uses the 44 px font / 68 px glyph, every ring row the
+// 32 px font / 48 px glyph; position, colour and opacity still interpolate
+// continuously, which is what carries the wheel illusion.
+constexpr uint16_t kGlyphRingPx = 48;
+constexpr int16_t kTextHalfSel  = 29;  // half extent of a 44 px row
+constexpr int16_t kTextHalfRing = 21;  // half extent of a 32 px row
 
 // Scroll feel. Hand-tuned on the host sim; expect to retune on glass.
 constexpr int32_t kTapSlop     = 8;       // px of movement that still counts as a tap
 constexpr uint32_t kTapMs      = 400;     // press longer than this is not a tap
 constexpr float kRubber        = 0.35f;   // overshoot compression past the ends
-constexpr float kFlingMs       = 300.0f;  // projection horizon for release velocity
+constexpr float kFlingMs       = 900.0f;  // projection horizon for release velocity
 constexpr float kFlingMinV     = 0.05f;   // px/ms below which a release just snaps
 constexpr uint32_t kSnapBase   = 220;     // ms
-constexpr uint32_t kSnapPerRow = 45;      // ms per row of travel
-constexpr uint32_t kSnapMax    = 850;     // ms
-constexpr uint32_t kRevealMs   = 140;     // linked-rebuild fade-in
-constexpr float kBounceRows    = 0.22f;   // key-step nudge at the ends
+constexpr uint32_t kSnapPerRow = 32;      // ms per row of travel
+constexpr uint32_t kSnapMax    = 1200;    // ms; long flings hit this cap, so
+                                          // per-row speed keeps rising with
+                                          // travel instead of feeling damped
+constexpr uint32_t kTickMinMs = 60;       // haptic tick rate limit: each tick
+                                          // is an I2C transaction, and one per
+                                          // crossed row stalls a long fling
+constexpr uint32_t kRevealMs = 140;       // linked-rebuild fade-in
+constexpr float kBounceRows  = 0.22f;     // key-step nudge at the ends
 
 constexpr uint32_t kInk       = 0xF2F0EA;
 constexpr uint32_t kGrey      = 0x8A8A88;
@@ -169,15 +183,13 @@ bool PickerView::create(lv_obj_t* parent, const CandidateSource* source, GlyphPa
                 lv_obj_set_style_image_recolor_opa(row, LV_OPA_COVER, 0);
             } else {
                 row = lv_label_create(_root);
-                lv_obj_set_style_text_font(row, &lv_font_hanzi_pinyin_44, 0);
+                lv_obj_set_style_text_font(row, &lv_font_pinyin_latin_32, 0);
             }
-            lv_obj_set_style_transform_pivot_x(row, lv_pct(50), 0);
-            lv_obj_set_style_transform_pivot_y(row, lv_pct(50), 0);
             lv_obj_clear_flag(row, LV_OBJ_FLAG_CLICKABLE);
             lv_obj_add_flag(row, LV_OBJ_FLAG_HIDDEN);
-            wh.rows[s]    = row;
-            wh.content[s] = -1;
-            wh.text_w[s]  = 0;
+            wh.rows[s]          = row;
+            wh.content[s]       = -1;
+            wh.selected_tier[s] = false;
         }
     }
 
@@ -490,19 +502,27 @@ void PickerView::updateCaption()
     lv_obj_clear_flag(_caption, LV_OBJ_FLAG_HIDDEN);
 }
 
-void PickerView::assignRow(Wheel& wh, uint8_t slot, int32_t item)
+void PickerView::assignRow(Wheel& wh, uint8_t slot, int32_t item, bool selected)
 {
-    wh.content[slot] = item;
-    lv_obj_t* row    = wh.rows[slot];
+    wh.content[slot]       = item;
+    wh.selected_tier[slot] = selected;
+    lv_obj_t* row          = wh.rows[slot];
     if (wh.index == 2) {
-        const uint16_t id     = candidateAt(static_cast<uint16_t>(item));
-        const size_t glyph_px = static_cast<size_t>(kGlyphPx) * kGlyphPx;
-        std::memset(_glyph_buf[slot], 0, glyph_px);
-        _painter->paint(id, _glyph_buf[slot], kGlyphPx, kGlyphPx);
+        // One buffer per slot, re-rasterised at the tier's size (the painter
+        // draws at any size; the 68 px buffer holds either). Crossing the
+        // band edge costs one repaint, which the motion budget already caps.
+        const uint16_t size = selected ? kGlyphPx : kGlyphRingPx;
+        const uint16_t id   = candidateAt(static_cast<uint16_t>(item));
+        std::memset(_glyph_buf[slot], 0, static_cast<size_t>(size) * size);
+        _painter->paint(id, _glyph_buf[slot], size, size);
+        _glyph_dsc[slot].header.w      = size;
+        _glyph_dsc[slot].header.h      = size;
+        _glyph_dsc[slot].header.stride = size;
+        _glyph_dsc[slot].data_size     = static_cast<uint32_t>(size) * size;
         // The buffer is reused in place, so the cached decoded image must go.
         lv_image_cache_drop(&_glyph_dsc[slot]);
+        lv_image_set_src(row, &_glyph_dsc[slot]);  // re-read the new header
         lv_obj_invalidate(row);
-        wh.text_w[slot] = kGlyphPx;
         return;
     }
     const char* text = wh.index == 0 ? _source->unitAt(static_cast<uint16_t>(item))
@@ -510,10 +530,19 @@ void PickerView::assignRow(Wheel& wh, uint8_t slot, int32_t item)
     if (text[0] == '\0') {
         text = kEmptySuffixMark;
     }
+    // Wide content never leaves its column: a selected row that would
+    // overflow the measured budget drops to the ring font instead (defensive
+    // only -- the budget is measured over the same data, so today fits).
+    const lv_font_t* font = &lv_font_pinyin_latin_32;
+    if (selected) {
+        lv_point_t sz;
+        lv_text_get_size(&sz, text, &lv_font_hanzi_pinyin_44, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
+        if (sz.x <= wh.width) {
+            font = &lv_font_hanzi_pinyin_44;
+        }
+    }
+    lv_obj_set_style_text_font(row, font, 0);
     lv_label_set_text(row, text);
-    lv_point_t sz;
-    lv_text_get_size(&sz, text, &lv_font_hanzi_pinyin_44, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
-    wh.text_w[slot] = sz.x;
 }
 
 float PickerView::rubberOffset(const Wheel& wh) const
@@ -528,12 +557,17 @@ float PickerView::rubberOffset(const Wheel& wh) const
     return wh.offset;
 }
 
-void PickerView::refreshWheel(uint8_t w)
+void PickerView::refreshWheel(uint8_t w, bool in_motion)
 {
     if (_root == nullptr) {
         return;
     }
-    Wheel& wh        = _wheels[w];
+    Wheel& wh = _wheels[w];
+    // Rasterising a glyph costs 1-2 ms on device; during a fast fling a
+    // frame can expose several new rows at once, so cap the paints per
+    // motion frame and let the stragglers fill in as the wheel slows (the
+    // settle pass runs unbudgeted, so the window always completes).
+    uint8_t paints   = (w == 2 && in_motion) ? 2 : kSlots;
     const float disp = rubberOffset(wh);
     const int32_t lo = static_cast<int32_t>(std::floor(disp)) - (kSlots / 2);
     for (int32_t item = lo; item < lo + kSlots; item++) {
@@ -549,25 +583,40 @@ void PickerView::refreshWheel(uint8_t w)
             lv_obj_add_flag(row, LV_OBJ_FLAG_HIDDEN);
             continue;
         }
+        const bool selected = std::fabs(d) < 0.5f;
         if (wh.content[slot] != item) {
-            assignRow(wh, slot, item);
+            if (w == 2 && paints == 0) {
+                lv_obj_add_flag(row, LV_OBJ_FLAG_HIDDEN);
+                continue;
+            }
+            assignRow(wh, slot, item, selected);
+            if (w == 2) {
+                paints--;
+            }
+        } else if (wh.selected_tier[slot] != selected) {
+            // Same content crossing the band edge: swap the tier. For the
+            // glyph wheel this is one repaint and shares the motion budget;
+            // running out just leaves the old size until the settle pass.
+            if (w != 2 || paints > 0) {
+                assignRow(wh, slot, item, selected);
+                if (w == 2) {
+                    paints--;
+                }
+            }
         }
-        const float dist  = std::fabs(d);
-        const float scale = std::cos(alpha);
-        const float y     = kWheelR * std::sin(alpha) + kLift * std::max(0.0f, 1.0f - dist);
-        const float half  = (w == 2 ? kGlyphPx / 2.0f : static_cast<float>(kTextHalf)) * scale;
-        const float room  = static_cast<float>(wh.y_lim) - std::fabs(y) - half;
+        const float dist = std::fabs(d);
+        const float y    = kWheelR * std::sin(alpha) + kLift * std::max(0.0f, 1.0f - dist);
+        // Clip against what the slot actually shows right now (its tier may
+        // lag one frame behind the target when the paint budget ran out).
+        const float half = w == 2 ? (wh.selected_tier[slot] ? kGlyphPx : kGlyphRingPx) / 2.0f
+                                  : static_cast<float>(wh.selected_tier[slot] ? kTextHalfSel : kTextHalfRing);
+        const float room = static_cast<float>(wh.y_lim) - std::fabs(y) - half;
         if (room <= 0.0f) {
             lv_obj_add_flag(row, LV_OBJ_FLAG_HIDDEN);
             continue;
         }
-        // Wide content never leaves its column: the selected size is scaled
-        // down to the measured budget (iang/uang keep their full height
-        // rhythm, just narrower ink).
-        const float fit = wh.text_w[slot] > wh.width ? static_cast<float>(wh.width) / wh.text_w[slot] : 1.0f;
         lv_obj_clear_flag(row, LV_OBJ_FLAG_HIDDEN);
         lv_obj_align(row, LV_ALIGN_CENTER, wh.x, static_cast<int32_t>(std::lround(y)));
-        lv_obj_set_style_transform_scale(row, static_cast<int32_t>(256.0f * scale * fit), 0);
         const lv_color_t ink = rowColor(w, dist);
         if (w == 2) {
             lv_obj_set_style_image_recolor(row, ink, 0);
@@ -629,9 +678,13 @@ void PickerView::tickCrossings(Wheel& wh)
         std::clamp<int32_t>(static_cast<int32_t>(std::lround(wh.offset)), 0, static_cast<int32_t>(wh.count) - 1);
     if (det != wh.detent) {
         wh.detent = det;
-        GetHAL().vibrate(5);
-        if (wh.index == 2) {
-            updateCaption();
+        // Rate-limited: the caption is refreshed at settle (it is faded out
+        // mid-motion anyway), and the haptic skips ticks that would arrive
+        // faster than the motor's I2C round-trip can afford.
+        const uint32_t now = lv_tick_get();
+        if (now - _last_tick_ms >= kTickMinMs) {
+            _last_tick_ms = now;
+            GetHAL().vibrate(5);
         }
     }
 }
@@ -749,6 +802,7 @@ void PickerView::handlePress(int32_t x, int32_t y)
 {
     _drag_wheel    = wheelForPoint(x);
     _drag_steering = false;
+    _press_caught  = false;
     _press_x       = x;
     _press_y       = y;
     _press_ms      = lv_tick_get();
@@ -757,8 +811,12 @@ void PickerView::handlePress(int32_t x, int32_t y)
     _velocity      = 0.0f;
     if (_drag_wheel >= 0) {
         Wheel& wh = _wheels[_drag_wheel];
-        // Catching a spinning wheel stops it where it is; the release will
-        // snap it onto a detent again.
+        // Catching a spinning wheel stops it where it is and turns the press
+        // into a grab: it steers from here, and the release never counts as
+        // a tap -- a child stabbing at a fast wheel means "stop", not
+        // "confirm whatever happens to be under the band".
+        _press_caught  = wh.snapping || wh.bouncing;
+        _drag_steering = _press_caught;  // a grab follows the finger at once
         stopWheelAnims(_drag_wheel);
         wh.snapping    = false;
         wh.bouncing    = false;
@@ -796,7 +854,7 @@ void PickerView::handleMove(int32_t x, int32_t y)
         Wheel& wh = _wheels[_drag_wheel];
         wh.offset = _press_offset + static_cast<float>(_press_y - y) / kPitch;
         tickCrossings(wh);
-        refreshWheel(static_cast<uint8_t>(_drag_wheel));
+        refreshWheel(static_cast<uint8_t>(_drag_wheel), true);
     }
 }
 
@@ -805,7 +863,10 @@ void PickerView::handleRelease(int32_t x, int32_t y)
     const int8_t w     = _drag_wheel;
     _drag_wheel        = -1;
     const uint32_t now = lv_tick_get();
-    const bool tap = std::abs(x - _press_x) < kTapSlop && std::abs(y - _press_y) < kTapSlop && now - _press_ms < kTapMs;
+    // A press that caught a moving wheel is a grab, never a tap: however
+    // short and still, it only stops and settles the wheel.
+    const bool tap = !_press_caught && std::abs(x - _press_x) < kTapSlop && std::abs(y - _press_y) < kTapSlop &&
+                     now - _press_ms < kTapMs;
 
     if (tap) {
         const int32_t y_rel = _press_y - kScreenC;
@@ -829,9 +890,10 @@ void PickerView::handleRelease(int32_t x, int32_t y)
         return;
     }
     Wheel& wh = _wheels[w];
-    if (!_drag_steering) {
-        return;
-    }
+    // Every non-tap release settles through the fling path, steered or not:
+    // a grab can leave the wheel between detents, and a stationary release
+    // must still snap it home (the velocity gates below zero out inertia).
+    //
     // Fling: project the release velocity over a fixed horizon, land on the
     // nearest detent of the projected position. A stale sample means the
     // finger paused before lifting -- no inertia then.
@@ -892,7 +954,7 @@ void PickerView::offsetAnimCb(void* var, int32_t v)
     Wheel* wh  = static_cast<Wheel*>(var);
     wh->offset = static_cast<float>(v) / 1024.0f;
     wh->owner->tickCrossings(*wh);
-    wh->owner->refreshWheel(wh->index);
+    wh->owner->refreshWheel(wh->index, true);
 }
 
 void PickerView::offsetAnimDoneCb(lv_anim_t* anim)
